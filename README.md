@@ -13,7 +13,7 @@ En la carpeta '[/docs](docs)' de este repositorio encontrarás el desglose del m
 - [User Story Map (MVP)](docs/user_story_map.md)
 - [Diagramas BPMN](docs/admin_calendario.md)
 - [Casos de Uso (UML)](docs/casos_de_uso.md)
-- [Wireframes](docs/wireframe.md)
+- [Wireframes y Flujo de Navegación](docs/wireframe.md)
 
 ---
 *Desarrollado como proyecto para la materia de Práctica Profesional - 2026*
