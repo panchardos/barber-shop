@@ -2,29 +2,48 @@ import '../../domain/entities/servicio.dart';
 import '../../domain/ports/servicio_repository.dart';
 
 class InMemoryServicioAdapter implements ServicioRepository {
-  final Map<String, Servicio> _dbServicios = {};
+  final List<Servicio> _servicios = [
+    Servicio(id: '1', nombre: 'Corte Tradicional', duracionMinutos: 30, precio: 5000.0),
+    Servicio(id: '2', nombre: 'Arreglo de Barba', duracionMinutos: 30, precio: 3000.0),
+    Servicio(id: '3', nombre: 'Corte + Barba', duracionMinutos: 45, precio: 7500.0),
+    Servicio(id: '4', nombre: 'Perfilado de Cejas', duracionMinutos: 15, precio: 2000.0),
+  ];
 
   @override
-  void save(Servicio servicio) {
-    _dbServicios[servicio.id] = servicio;
+  List<Servicio> findAll() {
+    return List.unmodifiable(_servicios);
   }
 
   @override
   Servicio? findById(String id) {
-    return _dbServicios[id];
-  }
-
-  @override
-  void updatePrecio(String id, double nuevoPrecio) {
-    if (_dbServicios.containsKey(id)) {
-      _dbServicios[id]!.precio = nuevoPrecio;
-      print(" [DB Servicios] Precio actualizado para $id: \$${nuevoPrecio}");
+    try {
+      return _servicios.firstWhere((s) => s.id == id);
+    } catch (_) {
+      return null;
     }
   }
 
   @override
-  List<Servicio> findAll() {
-    // NUEVO: Retorna la lista completa de valores del mapa simulado
-    return _dbServicios.values.toList();
+  void save(Servicio servicio) {
+    final index = _servicios.indexWhere((s) => s.id == servicio.id);
+    if (index >= 0) {
+      _servicios[index] = servicio;
+    } else {
+      _servicios.add(servicio);
+    }
+  }
+
+  @override
+  void updatePrecio(String id, double nuevoPrecio) {
+    final index = _servicios.indexWhere((s) => s.id == id);
+    if (index >= 0) {
+      final s = _servicios[index];
+      _servicios[index] = Servicio(
+        id: s.id,
+        nombre: s.nombre,
+        duracionMinutos: s.duracionMinutos,
+        precio: nuevoPrecio,
+      );
+    }
   }
 }
