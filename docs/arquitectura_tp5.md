@@ -107,6 +107,42 @@ Fila SQLite → Model → Entidad de dominio
 
 ---
 
+## Disponibilidad horaria
+
+La configuración del local dejó de ser un dato aislado. Ahora se usa para calcular los horarios que se ofrecen en la reserva.
+
+Componentes:
+
+- `DisponibilidadHorariaService` (dominio):
+  - Genera bloques entre apertura y cierre usando `duracionBloqueMinutos`.
+  - Descarta bloques donde el servicio no entra antes del cierre.
+  - Excluye horarios pasados.
+  - Detecta superposición con turnos existentes usando la duración real de cada servicio.
+- `ObtenerHorariosDisponiblesUseCase`:
+  - Lee `ConfiguracionAgenda` y los turnos del día.
+  - Devuelve la lista de horarios disponibles.
+- `AgendarTurnoUseCase`:
+  - Vuelve a validar la disponibilidad antes de persistir, para evitar reservas inválidas aunque la UI falle.
+
+Flujo:
+
+```text
+Pantalla de reserva
+  → ObtenerHorariosDisponiblesUseCase
+  → ConfiguracionRepository + TurnoRepository
+  → DisponibilidadHorariaService
+  → Lista de horarios disponibles
+
+Confirmar reserva
+  → AgendarTurnoUseCase
+  → DisponibilidadHorariaService
+  → TurnoRepository.save()
+```
+
+La misma lógica se usa en el alta manual de turnos del panel administrador.
+
+---
+
 ## Manejo de errores
 
 Los adaptadores capturan excepciones técnicas del driver y las traducen a excepciones de dominio:
@@ -116,7 +152,10 @@ Los adaptadores capturan excepciones técnicas del driver y las traducen a excep
 | `PersistenceFailureException` | Fallo de apertura, lectura o escritura en SQLite. |
 | `TurnoNotFoundException` | Turno inexistente al cancelar o eliminar. |
 | `ServicioNotFoundException` | Servicio inexistente al actualizar un precio. |
+| `ServicioInvalidoException` | Datos inválidos al crear un servicio. |
 | `ConfiguracionFailureException` | Fallo de SharedPreferences. |
+| `ConfiguracionInvalidaException` | Horarios o duración de bloque incoherentes. |
+| `HorarioNoDisponibleException` | Intento de reserva fuera de horario o superpuesto. |
 
 La UI recibe estas excepciones y muestra un mensaje al usuario sin conocer el driver subyacente.
 
@@ -155,6 +194,17 @@ Los casos de uso reciben únicamente los puertos del dominio, por lo que no cono
 
 El detalle completo con criterios de aceptación está en [HU del TP5](hu_tp5.md).
 
+### Flujos adicionales implementados
+
+Además de las HU 7 y HU 8, la interfaz cubre:
+
+- Reserva autónoma del cliente: selección de servicio, fecha, horario disponible y confirmación.
+- Agenda del administrador con navegación lateral, fechas rápidas, cancelación y alta manual.
+- Catálogo de servicios con alta y edición de precios.
+- Configuración y historial accesibles desde el panel.
+
+La aplicación abre en la reserva del cliente. El panel administrador se abre desde el ícono de administración de la cabecera.
+
 ---
 
 ## Decisiones técnicas
@@ -177,6 +227,14 @@ El detalle completo con criterios de aceptación está en [HU del TP5](hu_tp5.md
    - La versión del esquema pasó a `2`.
    - `onUpgrade` crea la tabla `servicios` si la base existente era de la versión 1.
 
+6. **Disponibilidad como regla de dominio**
+   - El cálculo de horarios vive en `DisponibilidadHorariaService`, no en la UI.
+   - La reserva se valida dos veces: al mostrar horarios y al confirmar.
+
+7. **Interfaz monocromática**
+   - Se usa una paleta de blancos, negros y un azul noche (`#011627`) como superficie oscura secundaria.
+   - El estilo sigue los wireframes: tarjetas, botones negros, secciones en mayúscula y navegación lateral en el panel.
+
 ---
 
 ## Estructura relevante
@@ -190,7 +248,9 @@ lib/
 │   │   ├── servicio.dart
 │   │   └── turno.dart
 │   ├── exceptions/
-│   └── ports/
+│   ├── ports/
+│   └── services/
+│       └── disponibilidad_horaria_service.dart
 ├── application/
 │   └── use_cases/
 ├── infrastructure/
@@ -199,7 +259,11 @@ lib/
 │   │   └── barberia_database.dart
 │   └── models/
 ├── presentation/
-│   └── screens/
+│   ├── screens/
+│   ├── theme/
+│   ├── utils/
+│   ├── widgets/
+│   └── app_routes.dart
 ├── injection_container.dart
 └── main.dart
 ```
@@ -208,8 +272,9 @@ lib/
 
 ## Limitaciones actuales
 
-- La configuración de agenda se persiste, pero todavía no se usa para generar automáticamente los bloques horarios ofrecidos al cliente.
 - El modelo `Turno` no tiene estado (`Reservado`, `Cancelado`); la cancelación elimina el registro.
-- No existe todavía un flujo público separado para el cliente (landing, galería y reserva autónoma).
+- No hay autenticación: el panel administrador se abre directamente desde la pantalla pública.
+- No se implementaron bloqueos excepcionales por día/hora ni horario de almuerzo.
+- No existe todavía la galería de cortes ni la cancelación autónoma del cliente.
 - No hay recordatorios automáticos.
-- La persistencia real con `sqflite` está pensada para Android/iOS. Para escritorio o pruebas de integración se requeriría `sqflite_common_ffi`.
+- La persistencia real con `sqflite` está pensada para Android/iOS. Para escritorio o pruebas de integración se usa `sqflite_common_ffi`.

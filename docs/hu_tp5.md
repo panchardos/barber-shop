@@ -46,6 +46,12 @@ Las nuevas historias son:
    - cuando el adaptador de persistencia falla,
    - entonces la pantalla debe mostrar un mensaje de error y permanecer abierta para reintentar.
 
+6. **Uso en la disponibilidad**
+   - Dado que la configuración fue guardada,
+   - cuando el cliente o el administrador consultan los horarios disponibles,
+   - entonces los bloques ofrecidos deben respetar la apertura, el cierre y la duración configurada.
+   - Los horarios ocupados o superpuestos no deben ofrecerse.
+
 ### Trazabilidad
 
 | Elemento | Implementación |
@@ -56,6 +62,8 @@ Las nuevas historias son:
 | Puerto | `ConfiguracionRepository` |
 | Adaptador real | `SharedPreferencesConfigAdapter` |
 | Adaptador mock | `InMemoryConfiguracionAdapter` |
+| Cálculo de disponibilidad | `DisponibilidadHorariaService` |
+| Casos de uso asociados | `ObtenerHorariosDisponiblesUseCase`, `AgendarTurnoUseCase` |
 
 ---
 

@@ -21,10 +21,14 @@ El proyecto sigue una **Arquitectura Hexagonal (Puertos y Adaptadores)**:
 
 ```text
 lib/
-├── domain/          Entidades, puertos y excepciones puras
+├── domain/
+│   ├── entities/    Cliente, Servicio, Turno, ConfiguracionAgenda
+│   ├── ports/       Contratos de persistencia
+│   ├── services/    Reglas puras de disponibilidad horaria
+│   └── exceptions/  Fallos de dominio
 ├── application/     Casos de uso
 ├── infrastructure/  Adaptadores, modelos y base de datos
-├── presentation/    Pantallas Flutter
+├── presentation/    Pantallas, tema, widgets y rutas
 ├── injection_container.dart
 └── main.dart
 ```
@@ -48,10 +52,22 @@ El sistema usa **persistencia políglota**:
 
 La base SQLite contiene las tablas `turnos` y `servicios`. La versión del esquema es `2` y contempla migración desde la versión anterior.
 
+## Disponibilidad horaria
+
+La configuración de agenda (apertura, cierre y duración de bloque) se usa para calcular los horarios ofrecidos:
+
+1. `DisponibilidadHorariaService` genera los bloques del día.
+2. Descarta los horarios pasados y los que no permiten completar el servicio antes del cierre.
+3. Excluye bloques superpuestos con turnos existentes, considerando la duración real del servicio.
+4. `ObtenerHorariosDisponiblesUseCase` expone el cálculo a la UI.
+5. `AgendarTurnoUseCase` vuelve a validar la disponibilidad antes de persistir.
+
 ## Historias de Usuario incorporadas en el TP5
 
 - **HU 7:** Configuración de la agenda local.
 - **HU 8:** Historial de cliente por teléfono.
+
+Además, la interfaz cubre los flujos de reserva del cliente (HU 2.1, 2.2 y 2.3) y la gestión del catálogo de servicios (HU 6.1 y 6.2).
 
 Ver [HU del TP5](docs/hu_tp5.md).
 
@@ -89,11 +105,13 @@ flutter test
 Las pruebas cubren:
 
 - Mappers bidireccionales de `TurnoModel` y `ServicioModel`.
-- Casos de uso de reserva, cancelación, precios, configuración, historial y disponibilidad.
+- Servicio de disponibilidad horaria: bloques, superposición por duración, horarios pasados y configuración inválida.
+- Casos de uso de reserva, cancelación, precios, servicios, configuración, historial y disponibilidad.
 - Adaptadores SQLite de turnos y servicios.
 - Adaptador de configuración con SharedPreferences.
 - Creación, siembra y migración de la base de datos.
 - Registro de dependencias con `get_it` en modo in-memory.
+- Construcción de las pantallas y navegación cliente/admin.
 
 La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.
 
@@ -101,10 +119,20 @@ La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de 
 
 ## Módulos principales
 
-- **Agenda:** listado de turnos por fecha, alta y cancelación.
+- **Reserva del cliente:** la aplicación abre en este flujo. Permite elegir servicio, fecha, horario disponible y datos personales, y muestra una confirmación.
+- **Acceso administrador:** ícono en la cabecera de la reserva.
+- **Agenda:** panel con menú lateral, burbujas de fechas, turnos del día, cancelación y alta manual con disponibilidad.
+- **Servicios:** alta de servicios y edición de precios.
 - **Configuración:** apertura, cierre y duración de bloques.
 - **Historial:** búsqueda de turnos por teléfono.
-- **Catálogo:** servicios con duración y precio persistidos en SQLite.
+
+### Navegación
+
+- `/` → reserva del cliente.
+- `/admin` → agenda del administrador.
+- `/admin/servicios` → catálogo y precios.
+- `/admin/configuracion` → parámetros del local.
+- `/admin/historial` → historial por teléfono.
 
 ## Documentación ampliada del TP5
 

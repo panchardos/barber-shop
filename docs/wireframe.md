@@ -48,7 +48,7 @@ Este flujo describe el camino que realiza el Peluquero en su día a día para ma
 
 #### 3.1 Configuración de Agenda (HU 7)
 
-- **Acceso:** ícono de configuración en la barra superior de la agenda.
+- **Acceso:** ítem "Configuración" del menú lateral del panel administrador, o ícono de configuración en la barra superior.
 - **Elementos:**
   - Campo de hora de apertura (`HH:MM`).
   - Campo de hora de cierre (`HH:MM`).
@@ -62,7 +62,7 @@ Este flujo describe el camino que realiza el Peluquero en su día a día para ma
 
 #### 3.2 Historial de Cliente (HU 8)
 
-- **Acceso:** ícono de historial en la barra superior de la agenda.
+- **Acceso:** ítem "Historial" del menú lateral del panel administrador.
 - **Elementos:**
   - Campo de teléfono.
   - Botón de búsqueda.
@@ -73,3 +73,28 @@ Este flujo describe el camino que realiza el Peluquero en su día a día para ma
   - Ordena por fecha descendente y, ante misma fecha, por hora descendente.
   - Muestra servicio, precio, fecha, hora y nombre del cliente.
   - Presenta un estado vacío cuando no hay coincidencias.
+
+---
+
+## 4. Implementación actual en Flutter
+
+La interfaz se alineó con los wireframes:
+
+- **Pantalla inicial:** reserva del cliente.
+- **Acceso administrador:** ícono en la cabecera de la reserva.
+- **Panel administrador:** menú lateral con Agenda, Servicios, Configuración e Historial.
+- **Agenda:** burbujas de fechas, tarjetas de turnos, modal de cancelación y alta manual.
+- **Servicios:** formulario de alta y lista de precios con edición.
+- **Reserva del cliente:** selección de servicio, calendario, horarios disponibles calculados y confirmación.
+
+### Rutas
+
+| Ruta | Pantalla |
+|---|---|
+| `/` | Reserva del cliente |
+| `/admin` | Agenda del administrador |
+| `/admin/servicios` | Catálogo y precios |
+| `/admin/configuracion` | Configuración de agenda |
+| `/admin/historial` | Historial por teléfono |
+
+La paleta usa blanco `#FDFFFC`, negro `#080F0F` y azul noche `#011627`, con grises derivados para bordes y fondos.

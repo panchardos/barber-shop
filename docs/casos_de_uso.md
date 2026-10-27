@@ -14,5 +14,7 @@ El sistema cuenta actualmente con los siguientes casos de uso de aplicación:
 6. `ValidarDisponibilidadHorariaUseCase`
 7. `ConfigurarAgendaUseCase` — HU 7
 8. `ObtenerHistorialClienteUseCase` — HU 8
+9. `ObtenerHorariosDisponiblesUseCase` — disponibilidad según configuración
+10. `CrearServicioUseCase` — alta de servicios (HU 6.1)
 
-Las HU 7 y HU 8 se detallan en [hu_tp5.md](hu_tp5.md).
+Las HU 7 y HU 8 se detallan en [hu_tp5.md](hu_tp5.md). La disponibilidad se documenta en [arquitectura_tp5.md](arquitectura_tp5.md).
