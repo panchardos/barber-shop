@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   get_it: ^9.3.0
   path: ^1.9.1
   shared_preferences: ^2.5.5

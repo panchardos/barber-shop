@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../injection_container.dart';
+
 import '../../application/use_cases/configurar_agenda.dart';
+import '../../injection_container.dart';
+import '../theme/app_theme.dart';
+import '../widgets/admin_scaffold.dart';
+import '../widgets/section_title.dart';
 
 class ConfiguracionAgendaScreen extends StatefulWidget {
   const ConfiguracionAgendaScreen({super.key});
@@ -12,15 +16,24 @@ class ConfiguracionAgendaScreen extends StatefulWidget {
 
 class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _aperturaCtrl = TextEditingController();
   final _cierreCtrl = TextEditingController();
   final _intervaloCtrl = TextEditingController();
+
+  bool _guardando = false;
 
   @override
   void initState() {
     super.initState();
     _cargarConfiguracionActual();
+  }
+
+  @override
+  void dispose() {
+    _aperturaCtrl.dispose();
+    _cierreCtrl.dispose();
+    _intervaloCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarConfiguracionActual() async {
@@ -92,11 +105,13 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("La hora de apertura debe ser anterior a la de cierre"),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.rojo,
         ),
       );
       return;
     }
+
+    setState(() => _guardando = true);
 
     try {
       final useCase = getIt<ConfigurarAgendaUseCase>();
@@ -106,84 +121,96 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
         duracionBloque: int.parse(_intervaloCtrl.text.trim()),
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Configuración guardada correctamente"),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Configuración guardada correctamente")),
+      );
     } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error al guardar: $e"),
+          backgroundColor: AppColors.rojo,
+        ),
+      );
+    } finally {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error al guardar: ${e.toString()}"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() => _guardando = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Configuración de Agenda (HU 7)")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                "Parámetros del Local",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _aperturaCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Hora de Apertura (HH:MM)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.access_time),
+    return AdminScaffold(
+      selected: AdminSection.configuracion,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SectionTitle('Parámetros del local'),
+            const Text(
+              'Estos valores definen los bloques horarios que se ofrecen en la reserva.',
+              style: AppTextStyles.muted,
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _aperturaCtrl,
+                        decoration: const InputDecoration(
+                          labelText: "Hora de apertura (HH:MM)",
+                          prefixIcon: Icon(Icons.access_time),
+                        ),
+                        validator: _validarHora,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _cierreCtrl,
+                        decoration: const InputDecoration(
+                          labelText: "Hora de cierre (HH:MM)",
+                          prefixIcon: Icon(Icons.more_time),
+                        ),
+                        validator: _validarHora,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _intervaloCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Duración por bloque (minutos)",
+                          prefixIcon: Icon(Icons.timer),
+                        ),
+                        validator: _validarDuracion,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: _guardando ? null : _guardarConfiguracion,
+                        icon: _guardando
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.blanco,
+                                ),
+                              )
+                            : const Icon(Icons.save_outlined),
+                        label: const Text("GUARDAR CAMBIOS"),
+                      ),
+                    ],
+                  ),
                 ),
-                validator: _validarHora,
               ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _cierreCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Hora de Cierre (HH:MM)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.more_time),
-                ),
-                validator: _validarHora,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _intervaloCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Duración por Bloque (Minutos)",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.timer),
-                ),
-                validator: _validarDuracion,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.save),
-                label: const Text("Guardar Cambios"),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: _guardarConfiguracion,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

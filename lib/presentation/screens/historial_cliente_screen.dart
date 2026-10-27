@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../injection_container.dart';
-import '../../domain/entities/turno.dart';
+
 import '../../application/use_cases/obtener_historial_cliente.dart';
+import '../../domain/entities/turno.dart';
+import '../../injection_container.dart';
+import '../theme/app_theme.dart';
+import '../widgets/admin_scaffold.dart';
+import '../widgets/section_title.dart';
 
 class HistorialClienteScreen extends StatefulWidget {
   const HistorialClienteScreen({super.key});
@@ -14,6 +18,12 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
   final _telefonoCtrl = TextEditingController();
   List<Turno> _historial = [];
   bool _busquedaRealizada = false;
+
+  @override
+  void dispose() {
+    _telefonoCtrl.dispose();
+    super.dispose();
+  }
 
   void _buscarHistorial() {
     final telefono = _telefonoCtrl.text.trim();
@@ -36,24 +46,26 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Historial de Cliente (HU 8)")),
+    return AdminScaffold(
+      selected: AdminSection.historial,
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Campo de Búsqueda
+            const SectionTitle('Historial de cliente'),
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _telefonoCtrl,
                     keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _buscarHistorial(),
                     decoration: const InputDecoration(
                       labelText: "Teléfono del cliente",
                       hintText: "Ej: 2611234567",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.phone),
+                      prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
                 ),
@@ -66,47 +78,71 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            // Resultados
             Expanded(
               child: !_busquedaRealizada
-                  ? const Center(
-                      child: Text(
-                        "Ingrese un número de teléfono para consultar el historial.",
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                  ? const _EstadoHistorial(
+                      icon: Icons.manage_search,
+                      mensaje:
+                          "Ingresá un teléfono para consultar el historial.",
                     )
                   : _historial.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No se encontraron turnos registrados para este cliente.",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
+                  ? const _EstadoHistorial(
+                      icon: Icons.person_off_outlined,
+                      mensaje: "No se encontraron turnos para este cliente.",
                     )
-                  : ListView.builder(
+                  : ListView.separated(
                       itemCount: _historial.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final turno = _historial[index];
                         return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.blue.shade100,
-                              child: const Icon(
-                                Icons.event_note,
-                                color: Colors.blue,
-                              ),
-                            ),
-                            title: Text(
-                              "${turno.servicio.nombre} - \$${turno.servicio.precio}",
-                            ),
-                            subtitle: Text(
-                              "Fecha: ${turno.fechaYMD} | Hora: ${turno.hora}",
-                            ),
-                            trailing: Text(
-                              turno.cliente.nombre,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 46,
+                                  height: 46,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.grisFondo,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.event_note_outlined,
+                                    color: AppColors.negro,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        turno.servicio.nombre,
+                                        style: AppTextStyles.cardTitle,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "Fecha: ${turno.fechaYMD} | Hora: ${turno.hora}",
+                                        style: AppTextStyles.muted,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    turno.cliente.nombre,
+                                    textAlign: TextAlign.end,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -115,6 +151,31 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EstadoHistorial extends StatelessWidget {
+  final IconData icon;
+  final String mensaje;
+
+  const _EstadoHistorial({required this.icon, required this.mensaje});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 44, color: AppColors.grisTexto),
+          const SizedBox(height: 12),
+          Text(
+            mensaje,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.muted,
+          ),
+        ],
       ),
     );
   }

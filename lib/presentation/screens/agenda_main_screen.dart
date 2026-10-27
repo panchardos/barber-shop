@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import '../../injection_container.dart';
-import '../../domain/entities/turno.dart';
-import '../../domain/entities/servicio.dart';
-import '../../application/use_cases/obtener_turnos_por_dia.dart';
+
 import '../../application/use_cases/cancelar_turno.dart';
-import '../../application/use_cases/obtener_catalogo_servicios.dart';
-import '../../application/use_cases/agendar_turno.dart';
-import 'historial_cliente_screen.dart';
-import 'configuracion_agenda_screen.dart';
+import '../../application/use_cases/obtener_turnos_por_dia.dart';
+import '../../domain/entities/turno.dart';
+import '../../injection_container.dart';
+import '../theme/app_theme.dart';
+import '../utils/date_formatters.dart';
+import '../widgets/admin_scaffold.dart';
+import '../widgets/cancelar_turno_dialog.dart';
+import '../widgets/date_bubble.dart';
+import '../widgets/nuevo_turno_sheet.dart';
+import '../widgets/section_title.dart';
+import '../widgets/turno_card.dart';
 
 class AgendaMainScreen extends StatefulWidget {
   const AgendaMainScreen({super.key});
@@ -17,7 +21,7 @@ class AgendaMainScreen extends StatefulWidget {
 }
 
 class _AgendaMainScreenState extends State<AgendaMainScreen> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _fechaSeleccionada = soloFecha(DateTime.now());
   List<Turno> _turnosDelDia = [];
 
   @override
@@ -26,307 +30,155 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
     _cargarTurnos();
   }
 
-  String get _fechaYMDFormatted {
-    return "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}";
+  String get _fechaYMD => fechaYMD(_fechaSeleccionada);
+
+  List<DateTime> get _fechasVisibles {
+    final inicio = _fechaSeleccionada.subtract(const Duration(days: 3));
+    return List.generate(7, (index) => inicio.add(Duration(days: index)));
   }
 
   void _cargarTurnos() {
     final useCase = getIt<ObtenerTurnosPorDiaUseCase>();
     setState(() {
-      _turnosDelDia = useCase.execute(_fechaYMDFormatted);
+      _turnosDelDia = useCase.execute(_fechaYMD);
     });
   }
 
-  Future<void> _cancelarTurno(String id) async {
+  void _seleccionarFecha(DateTime fecha) {
+    final normalizada = soloFecha(fecha);
+    if (normalizada == _fechaSeleccionada) return;
+    setState(() => _fechaSeleccionada = normalizada);
+    _cargarTurnos();
+  }
+
+  Future<void> _abrirCalendario() async {
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: _fechaSeleccionada,
+      firstDate: DateTime(2025),
+      lastDate: DateTime(2030),
+    );
+    if (fecha != null) {
+      _seleccionarFecha(fecha);
+    }
+  }
+
+  Future<void> _cancelarTurno(Turno turno) async {
+    final confirmado = await mostrarDialogoCancelarTurno(context, turno);
+    if (!confirmado) return;
+
     try {
-      final useCase = getIt<CancelarTurnoUseCase>();
-      await useCase.execute(id);
+      await getIt<CancelarTurnoUseCase>().execute(turno.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Turno cancelado exitosamente")),
-      );
       _cargarTurnos();
+      _mostrarMensaje('Turno cancelado correctamente.');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      _mostrarMensaje('No se pudo cancelar el turno: $e');
     }
+  }
+
+  Future<void> _abrirNuevoTurno() async {
+    final creado = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: AppColors.blanco,
+      builder: (_) =>
+          NuevoTurnoSheet(fecha: _fechaSeleccionada, fechaYMD: _fechaYMD),
+    );
+
+    if (creado == true && mounted) {
+      _cargarTurnos();
+      _mostrarMensaje('Turno agendado correctamente.');
+    }
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('La Nota Barber Shop'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: 'Historial de Cliente (HU 8)',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const HistorialClienteScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Configuración (HU 7)',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ConfiguracionAgendaScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Selector de Fecha
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            color: Colors.blue.shade50,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Agenda: $_fechaYMDFormatted",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: const Text("Cambiar fecha"),
-                  onPressed: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2025),
-                      lastDate: DateTime(2027),
-                    );
-                    if (picked != null) {
-                      setState(() {
-                        _selectedDate = picked;
-                      });
-                      _cargarTurnos();
-                    }
-                  },
-                ),
-              ],
+    return AdminScaffold(
+      selected: AdminSection.agenda,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SectionTitle(
+              'Agenda de turnos',
+              trailing: IconButton(
+                tooltip: 'Elegir fecha',
+                icon: const Icon(Icons.calendar_month_outlined),
+                onPressed: _abrirCalendario,
+              ),
             ),
-          ),
-          // Lista de Turnos
-          Expanded(
-            child: _turnosDelDia.isEmpty
-                ? const Center(
-                    child: Text(
-                      "No hay turnos registrados para esta fecha.",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+            SizedBox(
+              height: 68,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _fechasVisibles.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final fecha = _fechasVisibles[index];
+                  return DateBubble(
+                    fecha: fecha,
+                    selected: fechaYMD(fecha) == _fechaYMD,
+                    onTap: () => _seleccionarFecha(fecha),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _turnosDelDia.isEmpty
+                  ? const _AgendaVacia()
+                  : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 88),
+                      itemCount: _turnosDelDia.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final turno = _turnosDelDia[index];
+                        return TurnoCard(
+                          turno: turno,
+                          onCancel: () => _cancelarTurno(turno),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: _turnosDelDia.length,
-                    itemBuilder: (context, index) {
-                      final turno = _turnosDelDia[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: ListTile(
-                          leading: CircleAvatar(child: Text(turno.hora)),
-                          title: Text(
-                            "${turno.cliente.nombre} (${turno.servicio.nombre})",
-                          ),
-                          subtitle: Text(
-                            "Tel: ${turno.cliente.telefono} - \$${turno.servicio.precio}",
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _confirmarCancelacion(turno.id),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        onPressed: _abrirNuevoTurno,
         icon: const Icon(Icons.add),
-        label: const Text("Nuevo Turno"),
-        onPressed: () => _mostrarDialogoNuevoTurno(context),
+        label: const Text('Nuevo turno'),
       ),
     );
   }
+}
 
-  void _confirmarCancelacion(String id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Cancelar Turno"),
-        content: const Text(
-          "¿Estás seguro de que deseas cancelar esta reserva?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text("No"),
+class _AgendaVacia extends StatelessWidget {
+  const _AgendaVacia();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.event_available_outlined,
+            size: 44,
+            color: AppColors.grisTexto,
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _cancelarTurno(id);
-            },
-            child: const Text(
-              "Sí, cancelar",
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
+          SizedBox(height: 12),
+          Text('No hay turnos para esta fecha.', style: AppTextStyles.muted),
         ],
-      ),
-    );
-  }
-
-  void _mostrarDialogoNuevoTurno(BuildContext context) {
-    final nombreCtrl = TextEditingController();
-    final telefonoCtrl = TextEditingController();
-    final horaCtrl = TextEditingController(text: "16:00");
-
-    final catalogo = getIt<ObtenerCatalogoServiciosUseCase>().execute();
-    Servicio? servicioSeleccionado = catalogo.isNotEmpty
-        ? catalogo.first
-        : null;
-    bool guardando = false;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(
-              top: 16,
-              left: 16,
-              right: 16,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  "Agendar Nuevo Turno",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: nombreCtrl,
-                  decoration: const InputDecoration(
-                    labelText: "Nombre del Cliente",
-                  ),
-                ),
-                TextField(
-                  controller: telefonoCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: "Teléfono"),
-                ),
-                TextField(
-                  controller: horaCtrl,
-                  decoration: const InputDecoration(labelText: "Hora (HH:MM)"),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<Servicio>(
-                  initialValue: servicioSeleccionado,
-                  items: catalogo
-                      .map(
-                        (s) => DropdownMenuItem(
-                          value: s,
-                          child: Text(
-                            "${s.nombre} (\$${s.precio.toStringAsFixed(0)})",
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    setModalState(() {
-                      servicioSeleccionado = val;
-                    });
-                  },
-                  decoration: const InputDecoration(labelText: "Servicio"),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: guardando
-                      ? null
-                      : () async {
-                          if (nombreCtrl.text.isEmpty ||
-                              telefonoCtrl.text.isEmpty ||
-                              servicioSeleccionado == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Complete todos los campos"),
-                              ),
-                            );
-                            return;
-                          }
-
-                          setModalState(() {
-                            guardando = true;
-                          });
-
-                          try {
-                            final agendarUseCase = getIt<AgendarTurnoUseCase>();
-                            await agendarUseCase.execute(
-                              nombreCliente: nombreCtrl.text.trim(),
-                              telefonoCliente: telefonoCtrl.text.trim(),
-                              servicioSeleccionado: servicioSeleccionado!,
-                              fechaYMD: _fechaYMDFormatted,
-                              hora: horaCtrl.text.trim(),
-                            );
-
-                            if (!ctx.mounted) return;
-                            Navigator.pop(ctx);
-                            _cargarTurnos();
-
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Turno agendado exitosamente"),
-                              ),
-                            );
-                          } catch (e) {
-                            if (ctx.mounted) {
-                              setModalState(() {
-                                guardando = false;
-                              });
-                            }
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                              SnackBar(content: Text("Error: $e")),
-                            );
-                          }
-                        },
-                  child: guardando
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text("Confirmar Reserva"),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
