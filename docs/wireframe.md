@@ -41,3 +41,35 @@ Este flujo describe el camino que realiza el Peluquero en su día a día para ma
 * **Toma de Decisión:** El modal muestra un mensaje de advertencia confirmando los datos del turno a eliminar. El administrador tiene dos opciones apiladas ergonómicamente:
     * **Opción A (Confirmar):** Presiona el botón negro `[ Sí, Cancelar Turno ]`. El sistema procesa la baja, cierra el modal, refresca la lista de la agenda (removiendo visualmente el turno) y libera el espacio en la web pública.
     * **Opción B (Abortar):** Presiona el botón secundario con borde gris `[ Volver Atrás ]`. El modal se cierra de inmediato y la agenda permanece intacta sin realizar cambios en la base de datos.
+
+---
+
+### 3. Pantallas incorporadas en el TP5
+
+#### 3.1 Configuración de Agenda (HU 7)
+
+- **Acceso:** ícono de configuración en la barra superior de la agenda.
+- **Elementos:**
+  - Campo de hora de apertura (`HH:MM`).
+  - Campo de hora de cierre (`HH:MM`).
+  - Campo de duración de bloque en minutos.
+  - Botón `Guardar Cambios`.
+- **Comportamiento:**
+  - Carga los valores persistidos al abrir la pantalla.
+  - Valida formato de hora, duración mayor a cero y coherencia entre apertura y cierre.
+  - Guarda en `SharedPreferences` y muestra confirmación.
+  - Si falla la persistencia, muestra un error y permite reintentar.
+
+#### 3.2 Historial de Cliente (HU 8)
+
+- **Acceso:** ícono de historial en la barra superior de la agenda.
+- **Elementos:**
+  - Campo de teléfono.
+  - Botón de búsqueda.
+  - Listado de turnos encontrados.
+- **Comportamiento:**
+  - Exige un teléfono para buscar.
+  - Recupera los turnos desde SQLite.
+  - Ordena por fecha descendente y, ante misma fecha, por hora descendente.
+  - Muestra servicio, precio, fecha, hora y nombre del cliente.
+  - Presenta un estado vacío cuando no hay coincidencias.
