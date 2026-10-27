@@ -1,4 +1,4 @@
-# Historias de Usuario del TP5
+﻿# Historias de Usuario del TP5
 
 ## Contexto
 
@@ -57,7 +57,7 @@ Las nuevas historias son:
 | Elemento | Implementación |
 |---|---|
 | Caso de uso | `ConfigurarAgendaUseCase` |
-| Pantalla | `ConfiguracionAgendaScreen` |
+| Pantalla | `ConfiguracionAgendaPage` |
 | Entidad | `ConfiguracionAgenda` |
 | Puerto | `ConfiguracionRepository` |
 | Adaptador real | `SharedPreferencesConfigAdapter` |
@@ -111,7 +111,7 @@ Las nuevas historias son:
 | Elemento | Implementación |
 |---|---|
 | Caso de uso | `ObtenerHistorialClienteUseCase` |
-| Pantalla | `HistorialClienteScreen` |
+| Pantalla | `HistorialClientePage` |
 | Puerto | `TurnoRepository` |
 | Adaptador real | `SqfliteTurnoAdapter` |
 | Adaptador mock | `InMemoryTurnoAdapter` |

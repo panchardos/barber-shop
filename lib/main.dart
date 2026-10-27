@@ -3,11 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'injection_container.dart';
 import 'presentation/app_routes.dart';
-import 'presentation/screens/agenda_main_screen.dart';
-import 'presentation/screens/configuracion_agenda_screen.dart';
-import 'presentation/screens/historial_cliente_screen.dart';
-import 'presentation/screens/reserva_cliente_screen.dart';
-import 'presentation/screens/servicios_admin_screen.dart';
+import 'presentation/pages/agenda_admin_page.dart';
+import 'presentation/pages/configuracion_agenda_page.dart';
+import 'presentation/pages/historial_cliente_page.dart';
+import 'presentation/pages/reserva_cliente_page.dart';
+import 'presentation/pages/servicios_admin_page.dart';
 import 'presentation/theme/app_theme.dart';
 
 void main() async {
@@ -38,11 +38,11 @@ class BarberiaApp extends StatelessWidget {
       ],
       initialRoute: AppRoutes.reserva,
       routes: {
-        AppRoutes.reserva: (_) => const ReservaClienteScreen(),
-        AppRoutes.admin: (_) => const AgendaMainScreen(),
-        AppRoutes.adminServicios: (_) => const ServiciosAdminScreen(),
-        AppRoutes.adminConfiguracion: (_) => const ConfiguracionAgendaScreen(),
-        AppRoutes.adminHistorial: (_) => const HistorialClienteScreen(),
+        AppRoutes.reserva: (_) => const ReservaClientePage(),
+        AppRoutes.admin: (_) => const AgendaAdminPage(),
+        AppRoutes.adminServicios: (_) => const ServiciosAdminPage(),
+        AppRoutes.adminConfiguracion: (_) => const ConfiguracionAgendaPage(),
+        AppRoutes.adminHistorial: (_) => const HistorialClientePage(),
       },
     );
   }

@@ -29,6 +29,13 @@ import 'application/use_cases/configurar_agenda.dart';
 import 'application/use_cases/obtener_horarios_disponibles.dart';
 import 'application/use_cases/crear_servicio.dart';
 
+// BLoCs (Presentación)
+import 'presentation/blocs/reserva/reserva_bloc.dart';
+import 'presentation/blocs/agenda_admin/agenda_admin_bloc.dart';
+import 'presentation/blocs/servicios_admin/servicios_admin_bloc.dart';
+import 'presentation/blocs/configuracion_agenda/configuracion_agenda_bloc.dart';
+import 'presentation/blocs/historial_cliente/historial_cliente_bloc.dart';
+
 final getIt = GetIt.instance;
 
 /// Inicializa el contenedor de dependencias.
@@ -139,5 +146,41 @@ Future<void> initDependencies({bool useRealStorage = true}) async {
 
   getIt.registerLazySingleton<CrearServicioUseCase>(
     () => CrearServicioUseCase(getIt<ServicioRepository>()),
+  );
+
+  // ----------------------------------------------------------------------
+  // 5. REGISTRO DE BLOCS (PRESENTACIÓN)
+  //    Se usa registerFactory para crear una instancia nueva por pantalla.
+  // ----------------------------------------------------------------------
+
+  getIt.registerFactory<ReservaBloc>(
+    () => ReservaBloc(
+      getIt<ObtenerCatalogoServiciosUseCase>(),
+      getIt<ObtenerHorariosDisponiblesUseCase>(),
+      getIt<AgendarTurnoUseCase>(),
+    ),
+  );
+
+  getIt.registerFactory<AgendaAdminBloc>(
+    () => AgendaAdminBloc(
+      getIt<ObtenerTurnosPorDiaUseCase>(),
+      getIt<CancelarTurnoUseCase>(),
+    ),
+  );
+
+  getIt.registerFactory<ServiciosAdminBloc>(
+    () => ServiciosAdminBloc(
+      getIt<ObtenerCatalogoServiciosUseCase>(),
+      getIt<CrearServicioUseCase>(),
+      getIt<ActualizarPrecioServicioUseCase>(),
+    ),
+  );
+
+  getIt.registerFactory<ConfiguracionAgendaBloc>(
+    () => ConfiguracionAgendaBloc(getIt<ConfigurarAgendaUseCase>()),
+  );
+
+  getIt.registerFactory<HistorialClienteBloc>(
+    () => HistorialClienteBloc(getIt<ObtenerHistorialClienteUseCase>()),
   );
 }

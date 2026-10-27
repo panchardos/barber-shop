@@ -1,4 +1,4 @@
-# Arquitectura y Persistencia — TP5
+﻿# Arquitectura y Persistencia — TP5
 
 ## Objetivo
 
@@ -181,14 +181,14 @@ Los casos de uso reciben únicamente los puertos del dominio, por lo que no cono
 ### HU 7 — Configuración de la agenda local
 
 - Caso de uso: `ConfigurarAgendaUseCase`
-- Pantalla: `ConfiguracionAgendaScreen`
+- Pantalla: `ConfiguracionAgendaPage`
 - Persistencia: `SharedPreferencesConfigAdapter`
 - Entidad: `ConfiguracionAgenda`
 
 ### HU 8 — Historial de cliente por teléfono
 
 - Caso de uso: `ObtenerHistorialClienteUseCase`
-- Pantalla: `HistorialClienteScreen`
+- Pantalla: `HistorialClientePage`
 - Persistencia: `SqfliteTurnoAdapter`
 - Consulta: `findByClienteTelefono`
 
@@ -204,6 +204,8 @@ Además de las HU 7 y HU 8, la interfaz cubre:
 - Configuración y historial accesibles desde el panel.
 
 La aplicación abre en la reserva del cliente. El panel administrador se abre desde el ícono de administración de la cabecera.
+
+La presentación evolucionó en el TP6 a una arquitectura BLoC: las páginas no invocan casos de uso, sino que despachan eventos a gestores registrados con `registerFactory`. El detalle está en [Gestión de estado](gestion_estado.md).
 
 ---
 
@@ -259,10 +261,11 @@ lib/
 │   │   └── barberia_database.dart
 │   └── models/
 ├── presentation/
-│   ├── screens/
+│   ├── pages/
+│   ├── widgets/
+│   ├── blocs/
 │   ├── theme/
 │   ├── utils/
-│   ├── widgets/
 │   └── app_routes.dart
 ├── injection_container.dart
 └── main.dart

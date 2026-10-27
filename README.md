@@ -28,7 +28,12 @@ lib/
 │   └── exceptions/  Fallos de dominio
 ├── application/     Casos de uso
 ├── infrastructure/  Adaptadores, modelos y base de datos
-├── presentation/    Pantallas, tema, widgets y rutas
+├── presentation/
+│   ├── pages/       Vistas de cada flujo
+│   ├── widgets/     Componentes reutilizables
+│   ├── blocs/       BLoCs, eventos y estados
+│   ├── theme/
+│   └── utils/
 ├── injection_container.dart
 └── main.dart
 ```
@@ -39,6 +44,17 @@ lib/
 - `get_it` actúa como Service Locator.
 
 Documentación ampliada: [Arquitectura y persistencia](docs/arquitectura_tp5.md).
+
+## Gestión de estado
+
+La presentación usa **BLoC**:
+
+- Las páginas solo resuelven su BLoC con `get_it` y lo entregan con `BlocProvider`.
+- Las vistas usan `BlocBuilder` con `switch (state)` exhaustivo y `BlocListener` para SnackBars y diálogos.
+- Los BLoCs reciben casos de uso por constructor y emiten estados inmutables sellados.
+- Los BLoCs se registran con `registerFactory`; los casos de uso y la persistencia siguen como `registerLazySingleton`.
+
+Documentación ampliada: [Gestión de estado](docs/gestion_estado.md).
 
 ## Persistencia
 
@@ -111,7 +127,11 @@ Las pruebas cubren:
 - Adaptador de configuración con SharedPreferences.
 - Creación, siembra y migración de la base de datos.
 - Registro de dependencias con `get_it` en modo in-memory.
-- Construcción de las pantallas y navegación cliente/admin.
+- BLoCs: estados Initial, Loading, Loaded, Success y Error; eventos y acciones de cada flujo.
+- `registerFactory` devolviendo instancias nuevas de cada BLoC.
+- Construcción de las páginas y navegación cliente/admin.
+
+Actualmente la suite contiene **102 tests**.
 
 La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.
 
@@ -134,10 +154,11 @@ La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de 
 - `/admin/configuracion` → parámetros del local.
 - `/admin/historial` → historial por teléfono.
 
-## Documentación ampliada del TP5
+## Documentación ampliada del TP5 y TP6
 
 - [HU del TP5](docs/hu_tp5.md)
 - [Arquitectura y persistencia](docs/arquitectura_tp5.md)
+- [Gestión de estado con BLoC](docs/gestion_estado.md)
 - [BPMN del administrador](docs/admin_calendario.md)
 - [BPMN de reserva de clientes](docs/reserva_clientes.md)
 

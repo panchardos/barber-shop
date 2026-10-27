@@ -16,6 +16,11 @@ import 'package:barber_shop/infrastructure/adapters/in_memory_servicio_adapter.d
 import 'package:barber_shop/infrastructure/adapters/in_memory_turno_adapter.dart';
 import 'package:barber_shop/domain/services/disponibilidad_horaria_service.dart';
 import 'package:barber_shop/injection_container.dart';
+import 'package:barber_shop/presentation/blocs/agenda_admin/agenda_admin_bloc.dart';
+import 'package:barber_shop/presentation/blocs/configuracion_agenda/configuracion_agenda_bloc.dart';
+import 'package:barber_shop/presentation/blocs/historial_cliente/historial_cliente_bloc.dart';
+import 'package:barber_shop/presentation/blocs/reserva/reserva_bloc.dart';
+import 'package:barber_shop/presentation/blocs/servicios_admin/servicios_admin_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -67,5 +72,41 @@ void main() {
       isA<ObtenerHorariosDisponiblesUseCase>(),
     );
     expect(getIt<CrearServicioUseCase>(), isA<CrearServicioUseCase>());
+  });
+
+  test('registra los BLoCs como factories', () async {
+    final reserva1 = getIt<ReservaBloc>();
+    final reserva2 = getIt<ReservaBloc>();
+    expect(reserva1, isA<ReservaBloc>());
+    expect(reserva1, isNot(same(reserva2)));
+
+    final agenda1 = getIt<AgendaAdminBloc>();
+    final agenda2 = getIt<AgendaAdminBloc>();
+    expect(agenda1, isNot(same(agenda2)));
+
+    final servicios1 = getIt<ServiciosAdminBloc>();
+    final servicios2 = getIt<ServiciosAdminBloc>();
+    expect(servicios1, isNot(same(servicios2)));
+
+    final configuracion1 = getIt<ConfiguracionAgendaBloc>();
+    final configuracion2 = getIt<ConfiguracionAgendaBloc>();
+    expect(configuracion1, isNot(same(configuracion2)));
+
+    final historial1 = getIt<HistorialClienteBloc>();
+    final historial2 = getIt<HistorialClienteBloc>();
+    expect(historial1, isNot(same(historial2)));
+
+    await Future.wait([
+      reserva1.close(),
+      reserva2.close(),
+      agenda1.close(),
+      agenda2.close(),
+      servicios1.close(),
+      servicios2.close(),
+      configuracion1.close(),
+      configuracion2.close(),
+      historial1.close(),
+      historial2.close(),
+    ]);
   });
 }

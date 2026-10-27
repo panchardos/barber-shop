@@ -1,10 +1,10 @@
-import 'package:barber_shop/injection_container.dart';
+﻿import 'package:barber_shop/injection_container.dart';
 import 'package:barber_shop/presentation/app_routes.dart';
-import 'package:barber_shop/presentation/screens/agenda_main_screen.dart';
-import 'package:barber_shop/presentation/screens/configuracion_agenda_screen.dart';
-import 'package:barber_shop/presentation/screens/historial_cliente_screen.dart';
-import 'package:barber_shop/presentation/screens/reserva_cliente_screen.dart';
-import 'package:barber_shop/presentation/screens/servicios_admin_screen.dart';
+import 'package:barber_shop/presentation/pages/agenda_admin_page.dart';
+import 'package:barber_shop/presentation/pages/configuracion_agenda_page.dart';
+import 'package:barber_shop/presentation/pages/historial_cliente_page.dart';
+import 'package:barber_shop/presentation/pages/reserva_cliente_page.dart';
+import 'package:barber_shop/presentation/pages/servicios_admin_page.dart';
 import 'package:barber_shop/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -31,11 +31,11 @@ void main() {
       ],
       initialRoute: AppRoutes.reserva,
       routes: {
-        AppRoutes.reserva: (_) => const ReservaClienteScreen(),
-        AppRoutes.admin: (_) => const AgendaMainScreen(),
-        AppRoutes.adminServicios: (_) => const ServiciosAdminScreen(),
-        AppRoutes.adminConfiguracion: (_) => const ConfiguracionAgendaScreen(),
-        AppRoutes.adminHistorial: (_) => const HistorialClienteScreen(),
+        AppRoutes.reserva: (_) => const ReservaClientePage(),
+        AppRoutes.admin: (_) => const AgendaAdminPage(),
+        AppRoutes.adminServicios: (_) => const ServiciosAdminPage(),
+        AppRoutes.adminConfiguracion: (_) => const ConfiguracionAgendaPage(),
+        AppRoutes.adminHistorial: (_) => const HistorialClientePage(),
       },
     );
   }
