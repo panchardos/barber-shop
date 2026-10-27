@@ -1,9 +1,9 @@
-import 'package:barber_shop/injection_container.dart';
-import 'package:barber_shop/presentation/screens/agenda_main_screen.dart';
-import 'package:barber_shop/presentation/screens/configuracion_agenda_screen.dart';
-import 'package:barber_shop/presentation/screens/historial_cliente_screen.dart';
-import 'package:barber_shop/presentation/screens/reserva_cliente_screen.dart';
-import 'package:barber_shop/presentation/screens/servicios_admin_screen.dart';
+﻿import 'package:barber_shop/injection_container.dart';
+import 'package:barber_shop/presentation/pages/agenda_admin_page.dart';
+import 'package:barber_shop/presentation/pages/configuracion_agenda_page.dart';
+import 'package:barber_shop/presentation/pages/historial_cliente_page.dart';
+import 'package:barber_shop/presentation/pages/reserva_cliente_page.dart';
+import 'package:barber_shop/presentation/pages/servicios_admin_page.dart';
 import 'package:barber_shop/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -35,7 +35,7 @@ void main() {
   testWidgets('la pantalla de reserva del cliente se construye', (
     tester,
   ) async {
-    await tester.pumpWidget(app(const ReservaClienteScreen()));
+    await tester.pumpWidget(app(const ReservaClientePage()));
     await tester.pumpAndSettle();
 
     expect(find.text('LA NOTA BARBER SHOP'), findsOneWidget);
@@ -45,7 +45,7 @@ void main() {
   });
 
   testWidgets('la agenda del administrador se construye', (tester) async {
-    await tester.pumpWidget(app(const AgendaMainScreen()));
+    await tester.pumpWidget(app(const AgendaAdminPage()));
     await tester.pumpAndSettle();
 
     expect(find.text('Panel Control'), findsOneWidget);
@@ -56,7 +56,7 @@ void main() {
   testWidgets('el administrador puede abrir el formulario de nuevo turno', (
     tester,
   ) async {
-    await tester.pumpWidget(app(const AgendaMainScreen()));
+    await tester.pumpWidget(app(const AgendaAdminPage()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Nuevo turno'));
@@ -70,7 +70,7 @@ void main() {
   testWidgets('la pantalla de servicios del administrador se construye', (
     tester,
   ) async {
-    await tester.pumpWidget(app(const ServiciosAdminScreen()));
+    await tester.pumpWidget(app(const ServiciosAdminPage()));
     await tester.pumpAndSettle();
 
     expect(find.text('Panel Control'), findsOneWidget);
@@ -79,7 +79,7 @@ void main() {
   });
 
   testWidgets('la configuración de agenda se construye', (tester) async {
-    await tester.pumpWidget(app(const ConfiguracionAgendaScreen()));
+    await tester.pumpWidget(app(const ConfiguracionAgendaPage()));
     await tester.pumpAndSettle();
 
     expect(find.text('PARÁMETROS DEL LOCAL'), findsOneWidget);
@@ -87,7 +87,7 @@ void main() {
   });
 
   testWidgets('el historial de cliente se construye', (tester) async {
-    await tester.pumpWidget(app(const HistorialClienteScreen()));
+    await tester.pumpWidget(app(const HistorialClientePage()));
     await tester.pumpAndSettle();
 
     expect(find.text('HISTORIAL DE CLIENTE'), findsOneWidget);
