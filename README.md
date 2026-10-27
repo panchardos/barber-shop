@@ -82,11 +82,22 @@ await initDependencies(useRealStorage: false);
 ## Análisis y pruebas
 
 ```bash
-dart analyze lib
+dart analyze lib test
 flutter test
 ```
 
-> En este entorno, `flutter analyze` puede fallar por los caracteres acentuados de la ruta del proyecto. `dart analyze lib` funciona correctamente.
+Las pruebas cubren:
+
+- Mappers bidireccionales de `TurnoModel` y `ServicioModel`.
+- Casos de uso de reserva, cancelación, precios, configuración, historial y disponibilidad.
+- Adaptadores SQLite de turnos y servicios.
+- Adaptador de configuración con SharedPreferences.
+- Creación, siembra y migración de la base de datos.
+- Registro de dependencias con `get_it` en modo in-memory.
+
+La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.
+
+> En este entorno, `flutter analyze` puede fallar por los caracteres acentuados de la ruta del proyecto. `dart analyze lib test` funciona correctamente.
 
 ## Módulos principales
 
