@@ -1,15 +1,23 @@
 import '../../domain/entities/cliente.dart';
 import '../../domain/entities/servicio.dart';
 import '../../domain/entities/turno.dart';
+import '../../domain/exceptions/domain_exceptions.dart';
+import '../../domain/ports/configuracion_repository.dart';
 import '../../domain/ports/turno_repository.dart';
+import '../../domain/services/disponibilidad_horaria_service.dart';
 
 class AgendarTurnoUseCase {
-  // Inyectamos el puerto (la interfaz abstracta) a través del constructor
   final TurnoRepository _turnoRepository;
+  final ConfiguracionRepository _configuracionRepository;
+  final DisponibilidadHorariaService _disponibilidadService;
 
   static int _secuencia = 0;
 
-  AgendarTurnoUseCase(this._turnoRepository);
+  AgendarTurnoUseCase(
+    this._turnoRepository,
+    this._configuracionRepository,
+    this._disponibilidadService,
+  );
 
   /// Ejecuta la acción de agendar un turno.
   /// Retorna el ID único del turno generado.
@@ -20,21 +28,31 @@ class AgendarTurnoUseCase {
     required String fechaYMD,
     required String hora,
   }) async {
-    // 1. REGLA DE NEGOCIO: Validar que los datos del cliente no vengan vacíos
     if (nombreCliente.trim().isEmpty || telefonoCliente.trim().isEmpty) {
       throw Exception("Los datos personales del cliente son obligatorios.");
     }
-
-    // 2. REGLA DE NEGOCIO CRÍTICA: Validar colisión de horarios usando el Puerto
-    if (_turnoRepository.existsAtTime(fechaYMD, hora)) {
-      throw Exception("Lo sentimos, este horario ya se encuentra reservado.");
+    if (fechaYMD.trim().isEmpty || hora.trim().isEmpty) {
+      throw Exception("La fecha y la hora son obligatorias.");
     }
 
-    // 3. Generar un ID único provisorio para el MVP
+    final configuracion = await _configuracionRepository.getHorarioAtencion();
+    final turnosDelDia = _turnoRepository.findByDate(fechaYMD);
+
+    final disponible = _disponibilidadService.estaDisponible(
+      fechaYMD: fechaYMD,
+      hora: hora,
+      configuracion: configuracion,
+      servicio: servicioSeleccionado,
+      turnosDelDia: turnosDelDia,
+    );
+
+    if (!disponible) {
+      throw HorarioNoDisponibleException(fechaYMD, hora);
+    }
+
     _secuencia++;
     final idUnico = "TRN-${DateTime.now().microsecondsSinceEpoch}-$_secuencia";
 
-    // 4. Mapear y construir la Entidad de Dominio
     final nuevoTurno = Turno(
       id: idUnico,
       cliente: Cliente(nombre: nombreCliente, telefono: telefonoCliente),
@@ -43,7 +61,6 @@ class AgendarTurnoUseCase {
       hora: hora,
     );
 
-    // 5. Persistir el turno a través del Puerto
     await _turnoRepository.save(nuevoTurno);
 
     return idUnico;

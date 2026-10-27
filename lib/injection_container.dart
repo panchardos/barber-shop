@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'domain/ports/turno_repository.dart';
 import 'domain/ports/servicio_repository.dart';
 import 'domain/ports/configuracion_repository.dart';
+import 'domain/services/disponibilidad_horaria_service.dart';
 
 // Adaptadores (Infraestructura)
 import 'infrastructure/adapters/in_memory_turno_adapter.dart';
@@ -25,6 +26,8 @@ import 'application/use_cases/obtener_catalogo_servicios.dart';
 import 'application/use_cases/validar_disponibilidad_horaria.dart';
 import 'application/use_cases/obtener_historial_cliente.dart';
 import 'application/use_cases/configurar_agenda.dart';
+import 'application/use_cases/obtener_horarios_disponibles.dart';
+import 'application/use_cases/crear_servicio.dart';
 
 final getIt = GetIt.instance;
 
@@ -74,11 +77,23 @@ Future<void> initDependencies({bool useRealStorage = true}) async {
   }
 
   // ----------------------------------------------------------------------
-  // 3. REGISTRO DE CASOS DE USO (8 CASOS DE USO TOTALES)
+  // 3. SERVICIOS DE DOMINIO
+  // ----------------------------------------------------------------------
+
+  getIt.registerLazySingleton<DisponibilidadHorariaService>(
+    () => const DisponibilidadHorariaService(),
+  );
+
+  // ----------------------------------------------------------------------
+  // 4. REGISTRO DE CASOS DE USO (10 CASOS DE USO TOTALES)
   // ----------------------------------------------------------------------
 
   getIt.registerLazySingleton<AgendarTurnoUseCase>(
-    () => AgendarTurnoUseCase(getIt<TurnoRepository>()),
+    () => AgendarTurnoUseCase(
+      getIt<TurnoRepository>(),
+      getIt<ConfiguracionRepository>(),
+      getIt<DisponibilidadHorariaService>(),
+    ),
   );
 
   getIt.registerLazySingleton<ObtenerTurnosPorDiaUseCase>(
@@ -98,7 +113,19 @@ Future<void> initDependencies({bool useRealStorage = true}) async {
   );
 
   getIt.registerLazySingleton<ValidarDisponibilidadHorariaUseCase>(
-    () => ValidarDisponibilidadHorariaUseCase(getIt<TurnoRepository>()),
+    () => ValidarDisponibilidadHorariaUseCase(
+      getIt<TurnoRepository>(),
+      getIt<ConfiguracionRepository>(),
+      getIt<DisponibilidadHorariaService>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<ObtenerHorariosDisponiblesUseCase>(
+    () => ObtenerHorariosDisponiblesUseCase(
+      getIt<TurnoRepository>(),
+      getIt<ConfiguracionRepository>(),
+      getIt<DisponibilidadHorariaService>(),
+    ),
   );
 
   // Nuevos Casos de Uso (HU 7 y HU 8)
@@ -108,5 +135,9 @@ Future<void> initDependencies({bool useRealStorage = true}) async {
 
   getIt.registerLazySingleton<ConfigurarAgendaUseCase>(
     () => ConfigurarAgendaUseCase(getIt<ConfiguracionRepository>()),
+  );
+
+  getIt.registerLazySingleton<CrearServicioUseCase>(
+    () => CrearServicioUseCase(getIt<ServicioRepository>()),
   );
 }

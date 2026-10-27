@@ -25,3 +25,18 @@ class ConfiguracionFailureException extends DomainException {
   ConfiguracionFailureException(String message)
     : super("Error al acceder a las preferencias locales: $message");
 }
+
+class ConfiguracionInvalidaException extends DomainException {
+  ConfiguracionInvalidaException(String message)
+    : super("Configuración de agenda inválida: $message");
+}
+
+class HorarioNoDisponibleException extends DomainException {
+  HorarioNoDisponibleException(String fechaYMD, String hora)
+    : super("El horario $hora del $fechaYMD no está disponible.");
+}
+
+class ServicioInvalidoException extends DomainException {
+  ServicioInvalidoException(String message)
+    : super("Servicio inválido: $message");
+}

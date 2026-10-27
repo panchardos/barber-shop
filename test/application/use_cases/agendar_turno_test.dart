@@ -1,6 +1,9 @@
 import 'package:barber_shop/application/use_cases/agendar_turno.dart';
+import 'package:barber_shop/domain/entities/cliente.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
+import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
+import 'package:barber_shop/domain/services/disponibilidad_horaria_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fake_repositories.dart';
@@ -8,12 +11,20 @@ import '../../helpers/fake_repositories.dart';
 void main() {
   group('AgendarTurnoUseCase', () {
     late FakeTurnoRepository repository;
+    late FakeConfiguracionRepository configuracionRepository;
     late AgendarTurnoUseCase useCase;
     late Servicio servicio;
 
+    const fecha = '2030-01-15';
+
     setUp(() {
       repository = FakeTurnoRepository();
-      useCase = AgendarTurnoUseCase(repository);
+      configuracionRepository = FakeConfiguracionRepository();
+      useCase = AgendarTurnoUseCase(
+        repository,
+        configuracionRepository,
+        const DisponibilidadHorariaService(),
+      );
       servicio = Servicio(
         id: '1',
         nombre: 'Corte Tradicional',
@@ -27,7 +38,7 @@ void main() {
         nombreCliente: 'Ana Pérez',
         telefonoCliente: '2611234567',
         servicioSeleccionado: servicio,
-        fechaYMD: '2026-10-26',
+        fechaYMD: fecha,
         hora: '10:30',
       );
 
@@ -43,7 +54,7 @@ void main() {
         nombreCliente: 'Ana Pérez',
         telefonoCliente: '2611234567',
         servicioSeleccionado: servicio,
-        fechaYMD: '2026-10-26',
+        fechaYMD: fecha,
         hora: '10:30',
       );
 
@@ -51,7 +62,7 @@ void main() {
         nombreCliente: 'Luis Gómez',
         telefonoCliente: '2617654321',
         servicioSeleccionado: servicio,
-        fechaYMD: '2026-10-26',
+        fechaYMD: fecha,
         hora: '11:00',
       );
 
@@ -65,7 +76,7 @@ void main() {
           nombreCliente: '   ',
           telefonoCliente: '2611234567',
           servicioSeleccionado: servicio,
-          fechaYMD: '2026-10-26',
+          fechaYMD: fecha,
           hora: '10:30',
         ),
         throwsA(isA<Exception>()),
@@ -77,7 +88,7 @@ void main() {
         nombreCliente: 'Ana Pérez',
         telefonoCliente: '2611234567',
         servicioSeleccionado: servicio,
-        fechaYMD: '2026-10-26',
+        fechaYMD: fecha,
         hora: '10:30',
       );
 
@@ -86,12 +97,80 @@ void main() {
           nombreCliente: 'Luis Gómez',
           telefonoCliente: '2617654321',
           servicioSeleccionado: servicio,
-          fechaYMD: '2026-10-26',
+          fechaYMD: fecha,
           hora: '10:30',
         ),
-        throwsA(isA<Exception>()),
+        throwsA(isA<HorarioNoDisponibleException>()),
       );
       expect(repository.turnos, hasLength(1));
+    });
+
+    test('rechaza un horario fuera de la configuración', () async {
+      await expectLater(
+        useCase.execute(
+          nombreCliente: 'Ana Pérez',
+          telefonoCliente: '2611234567',
+          servicioSeleccionado: servicio,
+          fechaYMD: fecha,
+          hora: '08:00',
+        ),
+        throwsA(isA<HorarioNoDisponibleException>()),
+      );
+      expect(repository.turnos, isEmpty);
+    });
+
+    test(
+      'rechaza superposición parcial según la duración del servicio',
+      () async {
+        await repository.save(
+          Turno(
+            id: 'TRN-EXISTENTE',
+            cliente: Cliente(nombre: 'Cliente previo', telefono: '2610000000'),
+            servicio: Servicio(
+              id: '2',
+              nombre: 'Corte + Barba',
+              duracionMinutos: 45,
+              precio: 7500,
+            ),
+            fechaYMD: fecha,
+            hora: '10:00',
+          ),
+        );
+
+        await expectLater(
+          useCase.execute(
+            nombreCliente: 'Ana Pérez',
+            telefonoCliente: '2611234567',
+            servicioSeleccionado: servicio,
+            fechaYMD: fecha,
+            hora: '10:30',
+          ),
+          throwsA(isA<HorarioNoDisponibleException>()),
+        );
+      },
+    );
+
+    test('acepta un horario adyacente sin superposición', () async {
+      await repository.save(
+        Turno(
+          id: 'TRN-EXISTENTE',
+          cliente: Cliente(nombre: 'Cliente previo', telefono: '2610000000'),
+          servicio: servicio,
+          fechaYMD: fecha,
+          hora: '10:00',
+        ),
+      );
+
+      final id = await useCase.execute(
+        nombreCliente: 'Ana Pérez',
+        telefonoCliente: '2611234567',
+        servicioSeleccionado: servicio,
+        fechaYMD: fecha,
+        hora: '10:30',
+      );
+
+      expect(id, isNotEmpty);
+      expect(repository.turnos, hasLength(2));
     });
 
     test('propaga errores de persistencia', () async {
@@ -102,7 +181,7 @@ void main() {
           nombreCliente: 'Ana Pérez',
           telefonoCliente: '2611234567',
           servicioSeleccionado: servicio,
-          fechaYMD: '2026-10-26',
+          fechaYMD: fecha,
           hora: '10:30',
         ),
         throwsA(isA<PersistenceFailureException>()),
