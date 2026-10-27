@@ -7,6 +7,8 @@ class AgendarTurnoUseCase {
   // Inyectamos el puerto (la interfaz abstracta) a través del constructor
   final TurnoRepository _turnoRepository;
 
+  static int _secuencia = 0;
+
   AgendarTurnoUseCase(this._turnoRepository);
 
   /// Ejecuta la acción de agendar un turno.
@@ -29,7 +31,8 @@ class AgendarTurnoUseCase {
     }
 
     // 3. Generar un ID único provisorio para el MVP
-    final idUnico = "TRN-${DateTime.now().microsecondsSinceEpoch}";
+    _secuencia++;
+    final idUnico = "TRN-${DateTime.now().microsecondsSinceEpoch}-$_secuencia";
 
     // 4. Mapear y construir la Entidad de Dominio
     final nuevoTurno = Turno(

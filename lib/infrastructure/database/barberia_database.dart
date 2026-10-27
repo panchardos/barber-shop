@@ -8,16 +8,19 @@ class BarberiaDatabase {
   static const String databaseName = 'barberia.db';
   static const int databaseVersion = 2;
 
-  static Future<Database> open() async {
+  static Future<Database> open({DatabaseFactory? factory, String? path}) async {
     try {
-      final databasesPath = await getDatabasesPath();
-      final dbPath = join(databasesPath, databaseName);
+      final dbFactory = factory ?? databaseFactory;
+      final databasesPath = await dbFactory.getDatabasesPath();
+      final dbPath = path ?? join(databasesPath, databaseName);
 
-      return await openDatabase(
+      return await dbFactory.openDatabase(
         dbPath,
-        version: databaseVersion,
-        onCreate: _onCreate,
-        onUpgrade: _onUpgrade,
+        options: OpenDatabaseOptions(
+          version: databaseVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
       );
     } catch (e) {
       throw PersistenceFailureException(
