@@ -37,18 +37,20 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
     });
   }
 
-  void _cancelarTurno(String id) {
+  Future<void> _cancelarTurno(String id) async {
     try {
       final useCase = getIt<CancelarTurnoUseCase>();
-      useCase.execute(id);
+      await useCase.execute(id);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Turno cancelado exitosamente")),
       );
       _cargarTurnos();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -64,7 +66,9 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const HistorialClienteScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const HistorialClienteScreen(),
+                ),
               );
             },
           ),
@@ -74,7 +78,9 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ConfiguracionAgendaScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const ConfiguracionAgendaScreen(),
+                ),
               );
             },
           ),
@@ -91,7 +97,10 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
               children: [
                 Text(
                   "Agenda: $_fechaYMDFormatted",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.calendar_today),
@@ -128,13 +137,18 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
                     itemBuilder: (context, index) {
                       final turno = _turnosDelDia[index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         child: ListTile(
-                          leading: CircleAvatar(
-                            child: Text(turno.hora),
+                          leading: CircleAvatar(child: Text(turno.hora)),
+                          title: Text(
+                            "${turno.cliente.nombre} (${turno.servicio.nombre})",
                           ),
-                          title: Text("${turno.cliente.nombre} (${turno.servicio.nombre})"),
-                          subtitle: Text("Tel: ${turno.cliente.telefono} - \$${turno.servicio.precio}"),
+                          subtitle: Text(
+                            "Tel: ${turno.cliente.telefono} - \$${turno.servicio.precio}",
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _confirmarCancelacion(turno.id),
@@ -159,18 +173,23 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("Cancelar Turno"),
-        content: const Text("¿Estás seguro de que deseas cancelar esta reserva?"),
+        content: const Text(
+          "¿Estás seguro de que deseas cancelar esta reserva?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text("No"),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              _cancelarTurno(id);
+              await _cancelarTurno(id);
             },
-            child: const Text("Sí, cancelar", style: TextStyle(color: Colors.red)),
+            child: const Text(
+              "Sí, cancelar",
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -183,7 +202,10 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
     final horaCtrl = TextEditingController(text: "16:00");
 
     final catalogo = getIt<ObtenerCatalogoServiciosUseCase>().execute();
-    Servicio? servicioSeleccionado = catalogo.isNotEmpty ? catalogo.first : null;
+    Servicio? servicioSeleccionado = catalogo.isNotEmpty
+        ? catalogo.first
+        : null;
+    bool guardando = false;
 
     showModalBottomSheet(
       context: context,
@@ -208,7 +230,9 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: nombreCtrl,
-                  decoration: const InputDecoration(labelText: "Nombre del Cliente"),
+                  decoration: const InputDecoration(
+                    labelText: "Nombre del Cliente",
+                  ),
                 ),
                 TextField(
                   controller: telefonoCtrl,
@@ -226,7 +250,9 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
                       .map(
                         (s) => DropdownMenuItem(
                           value: s,
-                          child: Text("${s.nombre} (\$${s.precio.toStringAsFixed(0)})"),
+                          child: Text(
+                            "${s.nombre} (\$${s.precio.toStringAsFixed(0)})",
+                          ),
                         ),
                       )
                       .toList(),
@@ -239,37 +265,63 @@ class _AgendaMainScreenState extends State<AgendaMainScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    if (nombreCtrl.text.isEmpty ||
-                        telefonoCtrl.text.isEmpty ||
-                        servicioSeleccionado == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Complete todos los campos")),
-                      );
-                      return;
-                    }
+                  onPressed: guardando
+                      ? null
+                      : () async {
+                          if (nombreCtrl.text.isEmpty ||
+                              telefonoCtrl.text.isEmpty ||
+                              servicioSeleccionado == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Complete todos los campos"),
+                              ),
+                            );
+                            return;
+                          }
 
-                    try {
-                      final agendarUseCase = getIt<AgendarTurnoUseCase>();
-                      agendarUseCase.execute(
-                        nombreCliente: nombreCtrl.text.trim(),
-                        telefonoCliente: telefonoCtrl.text.trim(),
-                        servicioSeleccionado: servicioSeleccionado!,
-                        fechaYMD: _fechaYMDFormatted,
-                        hora: horaCtrl.text.trim(),
-                      );
-                      Navigator.pop(ctx);
-                      _cargarTurnos();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Turno agendado exitosamente")),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Error: $e")),
-                      );
-                    }
-                  },
-                  child: const Text("Confirmar Reserva"),
+                          setModalState(() {
+                            guardando = true;
+                          });
+
+                          try {
+                            final agendarUseCase = getIt<AgendarTurnoUseCase>();
+                            await agendarUseCase.execute(
+                              nombreCliente: nombreCtrl.text.trim(),
+                              telefonoCliente: telefonoCtrl.text.trim(),
+                              servicioSeleccionado: servicioSeleccionado!,
+                              fechaYMD: _fechaYMDFormatted,
+                              hora: horaCtrl.text.trim(),
+                            );
+
+                            if (!ctx.mounted) return;
+                            Navigator.pop(ctx);
+                            _cargarTurnos();
+
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Turno agendado exitosamente"),
+                              ),
+                            );
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              setModalState(() {
+                                guardando = false;
+                              });
+                            }
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(content: Text("Error: $e")),
+                            );
+                          }
+                        },
+                  child: guardando
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text("Confirmar Reserva"),
                 ),
               ],
             ),

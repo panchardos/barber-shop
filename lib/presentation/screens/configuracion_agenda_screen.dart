@@ -6,12 +6,13 @@ class ConfiguracionAgendaScreen extends StatefulWidget {
   const ConfiguracionAgendaScreen({super.key});
 
   @override
-  State<ConfiguracionAgendaScreen> createState() => _ConfiguracionAgendaScreenState();
+  State<ConfiguracionAgendaScreen> createState() =>
+      _ConfiguracionAgendaScreenState();
 }
 
 class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
   final _formKey = GlobalKey<FormState>();
-  
+
   final _aperturaCtrl = TextEditingController();
   final _cierreCtrl = TextEditingController();
   final _intervaloCtrl = TextEditingController();
@@ -26,12 +27,12 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
     try {
       final useCase = getIt<ConfigurarAgendaUseCase>();
       final configActual = await useCase.obtenerHorario();
-      
+
       if (mounted) {
         setState(() {
-          _aperturaCtrl.text = configActual['apertura']?.toString() ?? "09:00";
-          _cierreCtrl.text = configActual['cierre']?.toString() ?? "20:00";
-          _intervaloCtrl.text = configActual['duracionBloqueMinutos']?.toString() ?? "30";
+          _aperturaCtrl.text = configActual.apertura;
+          _cierreCtrl.text = configActual.cierre;
+          _intervaloCtrl.text = configActual.duracionBloqueMinutos.toString();
         });
       }
     } catch (_) {
@@ -45,14 +46,63 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
     }
   }
 
+  String? _validarHora(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Ingrese una hora";
+    }
+    final regex = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
+    if (!regex.hasMatch(value.trim())) {
+      return "Use el formato HH:MM";
+    }
+    return null;
+  }
+
+  String? _validarDuracion(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Ingrese el intervalo";
+    }
+    final numero = int.tryParse(value.trim());
+    if (numero == null || numero <= 0) {
+      return "Debe ser un número mayor a 0";
+    }
+    return null;
+  }
+
+  int? _horaAMinutos(String hora) {
+    final partes = hora.split(':');
+    if (partes.length != 2) return null;
+    final horas = int.tryParse(partes[0]);
+    final minutos = int.tryParse(partes[1]);
+    if (horas == null || minutos == null) return null;
+    return (horas * 60) + minutos;
+  }
+
   Future<void> _guardarConfiguracion() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final apertura = _aperturaCtrl.text.trim();
+    final cierre = _cierreCtrl.text.trim();
+    final aperturaMinutos = _horaAMinutos(apertura);
+    final cierreMinutos = _horaAMinutos(cierre);
+
+    if (aperturaMinutos == null ||
+        cierreMinutos == null ||
+        aperturaMinutos >= cierreMinutos) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("La hora de apertura debe ser anterior a la de cierre"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     try {
       final useCase = getIt<ConfigurarAgendaUseCase>();
       await useCase.guardarHorario(
-        apertura: _aperturaCtrl.text.trim(),
-        cierre: _cierreCtrl.text.trim(),
+        apertura: apertura,
+        cierre: cierre,
         duracionBloque: int.parse(_intervaloCtrl.text.trim()),
       );
 
@@ -80,9 +130,7 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Configuración de Agenda (HU 7)"),
-      ),
+      appBar: AppBar(title: const Text("Configuración de Agenda (HU 7)")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -102,8 +150,7 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.access_time),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Ingrese la hora de apertura" : null,
+                validator: _validarHora,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -113,8 +160,7 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.more_time),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Ingrese la hora de cierre" : null,
+                validator: _validarHora,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -125,11 +171,7 @@ class _ConfiguracionAgendaScreenState extends State<ConfiguracionAgendaScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.timer),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return "Ingrese el intervalo";
-                  if (int.tryParse(value) == null) return "Debe ser un número válido";
-                  return null;
-                },
+                validator: _validarDuracion,
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(

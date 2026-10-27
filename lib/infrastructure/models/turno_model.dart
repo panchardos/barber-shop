@@ -40,6 +40,11 @@ class TurnoModel {
     );
   }
 
+  /// Alias requerido por la consigna para mappers genéricos.
+  factory TurnoModel.fromMap(Map<String, dynamic> map) {
+    return TurnoModel.fromSqflite(map);
+  }
+
   /// Mapeo hacia un Map plano para insertar en SQFlite
   Map<String, dynamic> toSqflite() {
     return {
@@ -53,6 +58,11 @@ class TurnoModel {
       'fecha_ymd': fechaYMD,
       'hora': hora,
     };
+  }
+
+  /// Alias requerido por la consigna para mappers genéricos.
+  Map<String, dynamic> toMap() {
+    return toSqflite();
   }
 
   /// Conversión de Model de Infraestructura a Entidad de Dominio

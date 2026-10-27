@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../domain/entities/configuracion_agenda.dart';
 import '../../domain/ports/configuracion_repository.dart';
 import '../../domain/exceptions/domain_exceptions.dart';
 
@@ -13,30 +14,30 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
   static const String _keyModoOscuro = "cfg_modo_oscuro";
 
   @override
-  Future<void> saveHorarioAtencion({
-    required String apertura,
-    required String cierre,
-    required int duracionBloqueMinutos,
-  }) async {
+  Future<void> saveHorarioAtencion(ConfiguracionAgenda configuracion) async {
     try {
-      await _prefs.setString(_keyApertura, apertura);
-      await _prefs.setString(_keyCierre, cierre);
-      await _prefs.setInt(_keyDuracion, duracionBloqueMinutos);
+      await _prefs.setString(_keyApertura, configuracion.apertura);
+      await _prefs.setString(_keyCierre, configuracion.cierre);
+      await _prefs.setInt(_keyDuracion, configuracion.duracionBloqueMinutos);
     } catch (e) {
-      throw ConfiguracionFailureException("No se pudo guardar la configuración de horario: $e");
+      throw ConfiguracionFailureException(
+        "No se pudo guardar la configuración de horario: $e",
+      );
     }
   }
 
   @override
-  Future<Map<String, dynamic>> getHorarioAtencion() async {
+  Future<ConfiguracionAgenda> getHorarioAtencion() async {
     try {
-      return {
-        'apertura': _prefs.getString(_keyApertura) ?? "09:00",
-        'cierre': _prefs.getString(_keyCierre) ?? "20:00",
-        'duracionBloqueMinutos': _prefs.getInt(_keyDuracion) ?? 30,
-      };
+      return ConfiguracionAgenda(
+        apertura: _prefs.getString(_keyApertura) ?? "09:00",
+        cierre: _prefs.getString(_keyCierre) ?? "20:00",
+        duracionBloqueMinutos: _prefs.getInt(_keyDuracion) ?? 30,
+      );
     } catch (e) {
-      throw ConfiguracionFailureException("No se pudo leer la configuración de horario: $e");
+      throw ConfiguracionFailureException(
+        "No se pudo leer la configuración de horario: $e",
+      );
     }
   }
 
@@ -45,7 +46,9 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
     try {
       await _prefs.setBool(_keyModoOscuro, esModoOscuro);
     } catch (e) {
-      throw ConfiguracionFailureException("No se pudo guardar la preferencia de tema: $e");
+      throw ConfiguracionFailureException(
+        "No se pudo guardar la preferencia de tema: $e",
+      );
     }
   }
 
@@ -54,7 +57,9 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
     try {
       return _prefs.getBool(_keyModoOscuro) ?? false;
     } catch (e) {
-      throw ConfiguracionFailureException("No se pudo leer la preferencia de tema: $e");
+      throw ConfiguracionFailureException(
+        "No se pudo leer la preferencia de tema: $e",
+      );
     }
   }
 }

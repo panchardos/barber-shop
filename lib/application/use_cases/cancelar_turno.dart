@@ -5,10 +5,10 @@ class CancelarTurnoUseCase {
 
   CancelarTurnoUseCase(this._turnoRepository);
 
-  void execute(String idTurno) {
+  Future<void> execute(String idTurno) async {
     if (idTurno.trim().isEmpty) {
       throw Exception("El ID del turno es inválido.");
     }
-    _turnoRepository.delete(idTurno);
+    await _turnoRepository.delete(idTurno);
   }
 }

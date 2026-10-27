@@ -6,7 +6,7 @@ class InMemoryTurnoAdapter implements TurnoRepository {
   final List<Turno> _turnos = [];
 
   @override
-  void save(Turno turno) {
+  Future<void> save(Turno turno) async {
     final index = _turnos.indexWhere((t) => t.id == turno.id);
     if (index >= 0) {
       _turnos[index] = turno;
@@ -28,7 +28,7 @@ class InMemoryTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  void delete(String id) {
+  Future<void> delete(String id) async {
     final index = _turnos.indexWhere((t) => t.id == id);
     if (index < 0) {
       throw TurnoNotFoundException(id);
@@ -38,8 +38,14 @@ class InMemoryTurnoAdapter implements TurnoRepository {
 
   @override
   List<Turno> findByClienteTelefono(String telefono) {
-    final result = _turnos.where((t) => t.cliente.telefono == telefono).toList();
-    result.sort((a, b) => b.fechaYMD.compareTo(a.fechaYMD));
+    final result = _turnos
+        .where((t) => t.cliente.telefono == telefono)
+        .toList();
+    result.sort((a, b) {
+      final porFecha = b.fechaYMD.compareTo(a.fechaYMD);
+      if (porFecha != 0) return porFecha;
+      return b.hora.compareTo(a.hora);
+    });
     return result;
   }
 }

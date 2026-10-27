@@ -1,3 +1,4 @@
+import '../../domain/entities/configuracion_agenda.dart';
 import '../../domain/ports/configuracion_repository.dart';
 
 class ConfigurarAgendaUseCase {
@@ -11,13 +12,15 @@ class ConfigurarAgendaUseCase {
     required int duracionBloque,
   }) async {
     await _configRepository.saveHorarioAtencion(
-      apertura: apertura,
-      cierre: cierre,
-      duracionBloqueMinutos: duracionBloque,
+      ConfiguracionAgenda(
+        apertura: apertura,
+        cierre: cierre,
+        duracionBloqueMinutos: duracionBloque,
+      ),
     );
   }
 
-  Future<Map<String, dynamic>> obtenerHorario() async {
+  Future<ConfiguracionAgenda> obtenerHorario() async {
     return await _configRepository.getHorarioAtencion();
   }
 }

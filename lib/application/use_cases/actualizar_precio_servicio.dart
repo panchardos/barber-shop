@@ -5,10 +5,10 @@ class ActualizarPrecioServicioUseCase {
 
   ActualizarPrecioServicioUseCase(this._servicioRepository);
 
-  void execute(String idServicio, double nuevoPrecio) {
+  Future<void> execute(String idServicio, double nuevoPrecio) async {
     if (nuevoPrecio <= 0) {
       throw Exception("El precio debe ser un valor positivo.");
     }
-    _servicioRepository.updatePrecio(idServicio, nuevoPrecio);
+    await _servicioRepository.updatePrecio(idServicio, nuevoPrecio);
   }
 }

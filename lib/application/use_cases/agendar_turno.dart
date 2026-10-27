@@ -11,13 +11,13 @@ class AgendarTurnoUseCase {
 
   /// Ejecuta la acción de agendar un turno.
   /// Retorna el ID único del turno generado.
-  String execute({
+  Future<String> execute({
     required String nombreCliente,
     required String telefonoCliente,
     required Servicio servicioSeleccionado,
     required String fechaYMD,
     required String hora,
-  }) {
+  }) async {
     // 1. REGLA DE NEGOCIO: Validar que los datos del cliente no vengan vacíos
     if (nombreCliente.trim().isEmpty || telefonoCliente.trim().isEmpty) {
       throw Exception("Los datos personales del cliente son obligatorios.");
@@ -41,7 +41,7 @@ class AgendarTurnoUseCase {
     );
 
     // 5. Persistir el turno a través del Puerto
-    _turnoRepository.save(nuevoTurno);
+    await _turnoRepository.save(nuevoTurno);
 
     return idUnico;
   }

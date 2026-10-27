@@ -1,29 +1,18 @@
+import '../../domain/entities/configuracion_agenda.dart';
 import '../../domain/ports/configuracion_repository.dart';
 
 class InMemoryConfiguracionAdapter implements ConfiguracionRepository {
-  String _apertura = "09:00";
-  String _cierre = "20:00";
-  int _duracionBloque = 30;
+  ConfiguracionAgenda _configuracion = ConfiguracionAgenda.defaults();
   bool _modoOscuro = false;
 
   @override
-  Future<void> saveHorarioAtencion({
-    required String apertura,
-    required String cierre,
-    required int duracionBloqueMinutos,
-  }) async {
-    _apertura = apertura;
-    _cierre = cierre;
-    _duracionBloque = duracionBloqueMinutos;
+  Future<void> saveHorarioAtencion(ConfiguracionAgenda configuracion) async {
+    _configuracion = configuracion;
   }
 
   @override
-  Future<Map<String, dynamic>> getHorarioAtencion() async {
-    return {
-      'apertura': _apertura,
-      'cierre': _cierre,
-      'duracionBloqueMinutos': _duracionBloque,
-    };
+  Future<ConfiguracionAgenda> getHorarioAtencion() async {
+    return _configuracion;
   }
 
   @override

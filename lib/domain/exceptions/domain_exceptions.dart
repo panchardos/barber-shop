@@ -7,16 +7,21 @@ abstract class DomainException implements Exception {
 }
 
 class PersistenceFailureException extends DomainException {
-  PersistenceFailureException(String message) 
-      : super("Error técnico en el almacenamiento de datos: $message");
+  PersistenceFailureException(String message)
+    : super("Error técnico en el almacenamiento de datos: $message");
 }
 
 class TurnoNotFoundException extends DomainException {
-  TurnoNotFoundException(String id) 
-      : super("No se encontró el turno con el identificador: $id");
+  TurnoNotFoundException(String id)
+    : super("No se encontró el turno con el identificador: $id");
+}
+
+class ServicioNotFoundException extends DomainException {
+  ServicioNotFoundException(String id)
+    : super("No se encontró el servicio con el identificador: $id");
 }
 
 class ConfiguracionFailureException extends DomainException {
-  ConfiguracionFailureException(String message) 
-      : super("Error al acceder a las preferencias locales: $message");
+  ConfiguracionFailureException(String message)
+    : super("Error al acceder a las preferencias locales: $message");
 }
