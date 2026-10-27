@@ -1,6 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/configurar_agenda.dart';
+import '../../utils/demo_config.dart';
 import 'configuracion_agenda_event.dart';
 import 'configuracion_agenda_state.dart';
 
@@ -20,6 +21,7 @@ class ConfiguracionAgendaBloc
     Emitter<ConfiguracionAgendaState> emit,
   ) async {
     emit(const ConfiguracionAgendaLoading());
+    await DemoConfig.pausa();
     try {
       final configuracion = await _configurarAgenda.obtenerHorario();
       emit(ConfiguracionAgendaLoaded(configuracion: configuracion));
@@ -42,6 +44,7 @@ class ConfiguracionAgendaBloc
         successMessage: null,
       ),
     );
+    await DemoConfig.pausa();
 
     try {
       await _configurarAgenda.guardarHorario(

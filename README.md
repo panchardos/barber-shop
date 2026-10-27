@@ -56,6 +56,13 @@ La presentación usa **BLoC**:
 
 Documentación ampliada: [Gestión de estado](docs/gestion_estado.md).
 
+Para demostrar los estados de carga y error:
+
+```bash
+flutter run --dart-define=DEMO_MODE=true
+flutter run --dart-define=DEMO_ERROR=true
+```
+
 ## Persistencia
 
 El sistema usa **persistencia políglota**:
