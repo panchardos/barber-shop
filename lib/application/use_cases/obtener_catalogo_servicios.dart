@@ -7,10 +7,6 @@ class ObtenerCatalogoServiciosUseCase {
   ObtenerCatalogoServiciosUseCase(this._servicioRepository);
 
   List<Servicio> execute() {
-    final catalogo = _servicioRepository.findAll();
-    if (catalogo.isEmpty) {
-      print(" ⚠️ [Caso de Uso] Advertencia: El catálogo de servicios está vacío.");
-    }
-    return catalogo;
+    return _servicioRepository.findAll();
   }
 }

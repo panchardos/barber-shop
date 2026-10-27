@@ -37,9 +37,7 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Historial de Cliente (HU 8)"),
-      ),
+      appBar: AppBar(title: const Text("Historial de Cliente (HU 8)")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -78,33 +76,42 @@ class _HistorialClienteScreenState extends State<HistorialClienteScreen> {
                       ),
                     )
                   : _historial.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "No se encontraron turnos registrados para este cliente.",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _historial.length,
-                          itemBuilder: (context, index) {
-                            final turno = _historial[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.blue.shade100,
-                                  child: const Icon(Icons.event_note, color: Colors.blue),
-                                ),
-                                title: Text("${turno.servicio.nombre} - \$${turno.servicio.precio}"),
-                                subtitle: Text("Fecha: ${turno.fechaYMD} | Hora: ${turno.hora}"),
-                                trailing: Text(
-                                  turno.cliente.nombre,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                  ? const Center(
+                      child: Text(
+                        "No se encontraron turnos registrados para este cliente.",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _historial.length,
+                      itemBuilder: (context, index) {
+                        final turno = _historial[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.blue.shade100,
+                              child: const Icon(
+                                Icons.event_note,
+                                color: Colors.blue,
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                            title: Text(
+                              "${turno.servicio.nombre} - \$${turno.servicio.precio}",
+                            ),
+                            subtitle: Text(
+                              "Fecha: ${turno.fechaYMD} | Hora: ${turno.hora}",
+                            ),
+                            trailing: Text(
+                              turno.cliente.nombre,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

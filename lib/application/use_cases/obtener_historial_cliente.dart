@@ -8,7 +8,9 @@ class ObtenerHistorialClienteUseCase {
 
   List<Turno> execute(String telefono) {
     if (telefono.trim().isEmpty) {
-      throw Exception("El número de teléfono es obligatorio para consultar el historial.");
+      throw Exception(
+        "El número de teléfono es obligatorio para consultar el historial.",
+      );
     }
     return _turnoRepository.findByClienteTelefono(telefono);
   }

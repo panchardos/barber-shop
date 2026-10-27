@@ -6,7 +6,7 @@ class Turno {
   final Cliente cliente;
   final Servicio servicio;
   final String fechaYMD; // Ejemplo: "2026-06-29"
-  final String hora;     // Ejemplo: "14:30"
+  final String hora; // Ejemplo: "14:30"
 
   Turno({
     required this.id,
