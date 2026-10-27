@@ -3,6 +3,7 @@
 import '../../../application/use_cases/cancelar_turno.dart';
 import '../../../application/use_cases/obtener_turnos_por_dia.dart';
 import '../../utils/date_formatters.dart';
+import '../../utils/demo_config.dart';
 import 'agenda_admin_event.dart';
 import 'agenda_admin_state.dart';
 
@@ -25,6 +26,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
   ) async {
     final fecha = soloFecha(event.fecha ?? DateTime.now());
     emit(const AgendaAdminLoading());
+    await DemoConfig.pausa();
 
     try {
       final turnos = _obtenerTurnos.execute(fechaYMD(fecha));
@@ -55,6 +57,8 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
         successMessage: null,
       ),
     );
+
+    await DemoConfig.pausa();
 
     try {
       final turnos = _obtenerTurnos.execute(fechaYMD(fecha));
@@ -93,6 +97,8 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
       ),
     );
 
+    await DemoConfig.pausa();
+
     try {
       await _cancelarTurno.execute(event.turno.id);
       final turnos = _obtenerTurnos.execute(fechaYMD(actual.fecha));
@@ -120,6 +126,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
     }
 
     emit(actual.copyWith(cargando: true, errorMessage: null));
+    await DemoConfig.pausa();
     final turnos = _obtenerTurnos.execute(fechaYMD(actual.fecha));
     emit(actual.copyWith(turnos: turnos, cargando: false));
   }

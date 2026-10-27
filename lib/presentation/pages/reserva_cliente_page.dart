@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../injection_container.dart';
@@ -62,19 +62,28 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
         title: const Text(
           'Turno confirmado',
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.negro),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               success.nombre,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.negro,
+              ),
             ),
             const SizedBox(height: 8),
-            Text('${success.servicio.nombre} · ${success.hora} hs'),
+            Text(
+              '${success.servicio.nombre} · ${success.hora} hs',
+              style: const TextStyle(color: AppColors.negro),
+            ),
             const SizedBox(height: 4),
-            Text(fechaLarga(success.fecha), style: AppTextStyles.muted),
+            Text(
+              fechaLarga(success.fecha),
+              style: const TextStyle(color: AppColors.grisTexto),
+            ),
           ],
         ),
         actionsAlignment: MainAxisAlignment.center,
@@ -192,6 +201,7 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
                 child: SizedBox(
                   height: 330,
                   child: CalendarDatePicker(
+                    key: ValueKey(state.fecha),
                     initialDate: state.fecha,
                     firstDate: hoy,
                     lastDate: hoy.add(const Duration(days: 90)),
@@ -313,8 +323,12 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
         IconButton(
           tooltip: 'Panel administrador',
           icon: const Icon(Icons.admin_panel_settings_outlined),
-          onPressed: () {
-            Navigator.pushNamed(context, AppRoutes.admin);
+          onPressed: () async {
+            await Navigator.pushNamed(context, AppRoutes.admin);
+            if (!context.mounted || !mounted) return;
+            context.read<ReservaBloc>().add(
+              ReservaIniciada(soloFecha(DateTime.now())),
+            );
           },
         ),
       ],

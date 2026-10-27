@@ -4,6 +4,7 @@ import '../../../application/use_cases/agendar_turno.dart';
 import '../../../application/use_cases/obtener_catalogo_servicios.dart';
 import '../../../application/use_cases/obtener_horarios_disponibles.dart';
 import '../../utils/date_formatters.dart';
+import '../../utils/demo_config.dart';
 import 'reserva_event.dart';
 import 'reserva_state.dart';
 
@@ -28,8 +29,10 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
   ) async {
     final fecha = soloFecha(event.fecha);
     emit(const ReservaLoading());
+    await DemoConfig.pausa();
 
     try {
+      DemoConfig.maybeThrowOnce();
       final servicios = _obtenerCatalogo.execute();
       if (servicios.isEmpty) {
         emit(const ReservaError('No hay servicios disponibles.'));
@@ -71,6 +74,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
       errorMessage: null,
     );
     emit(base);
+    await DemoConfig.pausa();
 
     try {
       final horarios = await _obtenerHorarios.execute(
@@ -101,6 +105,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
       errorMessage: null,
     );
     emit(base);
+    await DemoConfig.pausa();
 
     try {
       final horarios = await _obtenerHorarios.execute(
@@ -140,6 +145,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
     final servicio = actual.servicioSeleccionado!;
     final hora = actual.horaSeleccionada!;
     emit(actual.copyWith(enviando: true, errorMessage: null));
+    await DemoConfig.pausa();
 
     try {
       await _agendarTurno.execute(

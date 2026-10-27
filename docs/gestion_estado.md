@@ -240,6 +240,21 @@ dart analyze lib test
 flutter test
 ```
 
+## Modo demostración
+
+Como las operaciones locales son instantáneas, los estados `Loading` pueden durar pocos milisegundos. Para la defensa oral se agregó un modo demo:
+
+```bash
+# Carga con una pausa de 900 ms para ver los estados Loading.
+flutter run --dart-define=DEMO_MODE=true
+
+# Fuerza un error en la primera carga de la reserva.
+# Al reintentar, la carga continúa normalmente.
+flutter run --dart-define=DEMO_ERROR=true
+```
+
+`DEMO_ERROR` aplica al primer intento de carga de `ReservaBloc`. El botón `REINTENTAR` vuelve a ejecutar `ReservaIniciada` y permite continuar con la demostración.
+
 ## Defensa oral
 
 Puntos para explicar:

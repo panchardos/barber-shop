@@ -129,12 +129,16 @@ class _NuevoTurnoViewState extends State<_NuevoTurnoView> {
                 const SectionTitle('Servicio'),
                 DropdownButtonFormField<Servicio>(
                   initialValue: state.servicioSeleccionado,
+                  style: const TextStyle(color: AppColors.negro),
+                  dropdownColor: AppColors.blanco,
+                  iconEnabledColor: AppColors.negro,
                   items: state.servicios
                       .map(
                         (servicio) => DropdownMenuItem(
                           value: servicio,
                           child: Text(
                             '${servicio.nombre} (${servicio.duracionMinutos} min)',
+                            style: const TextStyle(color: AppColors.negro),
                           ),
                         ),
                       )

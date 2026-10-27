@@ -1,8 +1,9 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/actualizar_precio_servicio.dart';
 import '../../../application/use_cases/crear_servicio.dart';
 import '../../../application/use_cases/obtener_catalogo_servicios.dart';
+import '../../utils/demo_config.dart';
 import 'servicios_admin_event.dart';
 import 'servicios_admin_state.dart';
 
@@ -28,6 +29,7 @@ class ServiciosAdminBloc
     Emitter<ServiciosAdminState> emit,
   ) async {
     emit(const ServiciosAdminLoading());
+    await DemoConfig.pausa();
     try {
       final servicios = _obtenerCatalogo.execute();
       emit(ServiciosAdminLoaded(servicios: servicios));
@@ -48,6 +50,7 @@ class ServiciosAdminBloc
         successMessage: null,
       ),
     );
+    await DemoConfig.pausa();
 
     try {
       await _crearServicio.execute(
@@ -80,6 +83,7 @@ class ServiciosAdminBloc
         successMessage: null,
       ),
     );
+    await DemoConfig.pausa();
 
     try {
       await _actualizarPrecio.execute(event.servicioId, event.precio);

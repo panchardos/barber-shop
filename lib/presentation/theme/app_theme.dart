@@ -164,6 +164,16 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.blanco,
         surfaceTintColor: Colors.transparent,
+        titleTextStyle: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: AppColors.negro,
+        ),
+        contentTextStyle: const TextStyle(
+          fontSize: 14,
+          height: 1.4,
+          color: AppColors.negro,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
