@@ -50,3 +50,6 @@ app.*.map.json
 
 # Para los tp
 /tps_act
+
+# Notas internas de sesiones / handoff de opencode
+/docs/sesiones/
