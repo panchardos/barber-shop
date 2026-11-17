@@ -40,3 +40,13 @@ class ServicioInvalidoException extends DomainException {
   ServicioInvalidoException(String message)
     : super("Servicio inválido: $message");
 }
+
+class RemoteFailureException extends DomainException {
+  RemoteFailureException(String message)
+    : super("Error de comunicación con el servidor: $message");
+}
+
+class AuthenticationFailureException extends DomainException {
+  AuthenticationFailureException(String message)
+    : super("No se pudo iniciar sesión: $message");
+}

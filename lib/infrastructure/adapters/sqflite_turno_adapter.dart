@@ -49,14 +49,14 @@ class SqfliteTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  List<Turno> findByDate(String fechaYMD) {
+  Future<List<Turno>> findByDate(String fechaYMD) async {
     final result = _cache.where((t) => t.fechaYMD == fechaYMD).toList();
     result.sort((a, b) => a.hora.compareTo(b.hora));
     return result;
   }
 
   @override
-  bool existsAtTime(String fechaYMD, String hora) {
+  Future<bool> existsAtTime(String fechaYMD, String hora) async {
     return _cache.any((t) => t.fechaYMD == fechaYMD && t.hora == hora);
   }
 
@@ -78,7 +78,7 @@ class SqfliteTurnoAdapter implements TurnoRepository {
 
   /// Método para HU 8: Historial por teléfono de cliente.
   @override
-  List<Turno> findByClienteTelefono(String telefono) {
+  Future<List<Turno>> findByClienteTelefono(String telefono) async {
     final result = _cache.where((t) => t.cliente.telefono == telefono).toList();
     result.sort((a, b) {
       final porFecha = b.fechaYMD.compareTo(a.fechaYMD);

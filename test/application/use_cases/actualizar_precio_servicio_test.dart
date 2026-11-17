@@ -27,12 +27,12 @@ void main() {
     test('actualiza el precio de un servicio existente', () async {
       await useCase.execute('1', 6500);
 
-      expect(repository.findById('1')!.precio, 6500);
+      expect((await repository.findById('1'))!.precio, 6500);
     });
 
     test('rechaza precios menores o iguales a cero', () async {
       await expectLater(useCase.execute('1', 0), throwsA(isA<Exception>()));
-      expect(repository.findById('1')!.precio, 5000);
+      expect((await repository.findById('1'))!.precio, 5000);
     });
 
     test('informa cuando el servicio no existe', () async {
@@ -49,7 +49,7 @@ void main() {
         useCase.execute('1', 6500),
         throwsA(isA<PersistenceFailureException>()),
       );
-      expect(repository.findById('1')!.precio, 5000);
+      expect((await repository.findById('1'))!.precio, 5000);
     });
   });
 }

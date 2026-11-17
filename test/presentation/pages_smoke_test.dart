@@ -1,4 +1,6 @@
-﻿import 'package:barber_shop/injection_container.dart';
+import 'package:barber_shop/injection_container.dart';
+import 'package:barber_shop/presentation/blocs/auth/auth_bloc.dart';
+import 'package:barber_shop/presentation/blocs/auth/auth_event.dart';
 import 'package:barber_shop/presentation/pages/agenda_admin_page.dart';
 import 'package:barber_shop/presentation/pages/configuracion_agenda_page.dart';
 import 'package:barber_shop/presentation/pages/historial_cliente_page.dart';
@@ -6,12 +8,13 @@ import 'package:barber_shop/presentation/pages/reserva_cliente_page.dart';
 import 'package:barber_shop/presentation/pages/servicios_admin_page.dart';
 import 'package:barber_shop/presentation/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUpAll(() async {
-    await initDependencies(useRealStorage: false);
+    await initDependencies(mode: StorageMode.memory);
   });
 
   tearDownAll(() async {
@@ -19,16 +22,19 @@ void main() {
   });
 
   Widget app(Widget home) {
-    return MaterialApp(
-      theme: AppTheme.light,
-      locale: const Locale('es'),
-      supportedLocales: const [Locale('es')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      home: home,
+    return BlocProvider<AuthBloc>(
+      create: (_) => getIt<AuthBloc>()..add(const AuthIniciado()),
+      child: MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('es'),
+        supportedLocales: const [Locale('es')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: home,
+      ),
     );
   }
 

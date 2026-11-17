@@ -1,4 +1,4 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/actualizar_precio_servicio.dart';
 import '../../../application/use_cases/crear_servicio.dart';
@@ -31,7 +31,7 @@ class ServiciosAdminBloc
     emit(const ServiciosAdminLoading());
     await DemoConfig.pausa();
     try {
-      final servicios = _obtenerCatalogo.execute();
+      final servicios = await _obtenerCatalogo.execute();
       emit(ServiciosAdminLoaded(servicios: servicios));
     } catch (e) {
       emit(ServiciosAdminError(e.toString()));
@@ -42,7 +42,7 @@ class ServiciosAdminBloc
     ServicioCreado event,
     Emitter<ServiciosAdminState> emit,
   ) async {
-    final actual = _estadoBase();
+    final actual = await _estadoBase();
     emit(
       actual.copyWith(
         guardando: true,
@@ -58,7 +58,7 @@ class ServiciosAdminBloc
         duracionMinutos: event.duracionMinutos,
         precio: event.precio,
       );
-      final servicios = _obtenerCatalogo.execute();
+      final servicios = await _obtenerCatalogo.execute();
 
       emit(
         ServiciosAdminLoaded(
@@ -75,7 +75,7 @@ class ServiciosAdminBloc
     PrecioServicioActualizado event,
     Emitter<ServiciosAdminState> emit,
   ) async {
-    final actual = _estadoBase();
+    final actual = await _estadoBase();
     emit(
       actual.copyWith(
         guardando: true,
@@ -87,7 +87,7 @@ class ServiciosAdminBloc
 
     try {
       await _actualizarPrecio.execute(event.servicioId, event.precio);
-      final servicios = _obtenerCatalogo.execute();
+      final servicios = await _obtenerCatalogo.execute();
 
       emit(
         ServiciosAdminLoaded(
@@ -110,11 +110,11 @@ class ServiciosAdminBloc
     emit(actual.copyWith(errorMessage: null, successMessage: null));
   }
 
-  ServiciosAdminLoaded _estadoBase() {
+  Future<ServiciosAdminLoaded> _estadoBase() async {
     final actual = state;
     if (actual is ServiciosAdminLoaded) {
       return actual;
     }
-    return ServiciosAdminLoaded(servicios: _obtenerCatalogo.execute());
+    return ServiciosAdminLoaded(servicios: await _obtenerCatalogo.execute());
   }
 }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/agendar_turno.dart';
 import '../../../application/use_cases/obtener_catalogo_servicios.dart';
@@ -33,7 +33,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
 
     try {
       DemoConfig.maybeThrowOnce();
-      final servicios = _obtenerCatalogo.execute();
+      final servicios = await _obtenerCatalogo.execute();
       if (servicios.isEmpty) {
         emit(const ReservaError('No hay servicios disponibles.'));
         return;

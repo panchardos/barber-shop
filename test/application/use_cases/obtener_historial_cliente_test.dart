@@ -58,7 +58,7 @@ void main() {
     });
 
     test('retorna solamente los turnos del teléfono consultado', () async {
-      final historial = useCase.execute('2611234567');
+      final historial = await useCase.execute('2611234567');
 
       expect(historial, hasLength(2));
       expect(
@@ -68,16 +68,13 @@ void main() {
     });
 
     test('retorna una lista vacía cuando no hay coincidencias', () async {
-      final historial = useCase.execute('0000000000');
+      final historial = await useCase.execute('0000000000');
 
       expect(historial, isEmpty);
     });
 
     test('rechaza un teléfono vacío', () async {
-      await expectLater(
-        Future.sync(() => useCase.execute('   ')),
-        throwsA(isA<Exception>()),
-      );
+      await expectLater(useCase.execute('   '), throwsA(isA<Exception>()));
     });
   });
 }

@@ -16,12 +16,12 @@ class InMemoryTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  bool existsAtTime(String fechaYMD, String hora) {
+  Future<bool> existsAtTime(String fechaYMD, String hora) async {
     return _turnos.any((t) => t.fechaYMD == fechaYMD && t.hora == hora);
   }
 
   @override
-  List<Turno> findByDate(String fechaYMD) {
+  Future<List<Turno>> findByDate(String fechaYMD) async {
     final result = _turnos.where((t) => t.fechaYMD == fechaYMD).toList();
     result.sort((a, b) => a.hora.compareTo(b.hora));
     return result;
@@ -37,7 +37,7 @@ class InMemoryTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  List<Turno> findByClienteTelefono(String telefono) {
+  Future<List<Turno>> findByClienteTelefono(String telefono) async {
     final result = _turnos
         .where((t) => t.cliente.telefono == telefono)
         .toList();

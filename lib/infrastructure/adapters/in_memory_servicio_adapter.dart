@@ -31,12 +31,12 @@ class InMemoryServicioAdapter implements ServicioRepository {
   ];
 
   @override
-  List<Servicio> findAll() {
+  Future<List<Servicio>> findAll() async {
     return List.unmodifiable(_servicios);
   }
 
   @override
-  Servicio? findById(String id) {
+  Future<Servicio?> findById(String id) async {
     for (final servicio in _servicios) {
       if (servicio.id == id) {
         return servicio;

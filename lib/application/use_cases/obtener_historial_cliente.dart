@@ -6,12 +6,12 @@ class ObtenerHistorialClienteUseCase {
 
   ObtenerHistorialClienteUseCase(this._turnoRepository);
 
-  List<Turno> execute(String telefono) {
+  Future<List<Turno>> execute(String telefono) async {
     if (telefono.trim().isEmpty) {
       throw Exception(
         "El número de teléfono es obligatorio para consultar el historial.",
       );
     }
-    return _turnoRepository.findByClienteTelefono(telefono);
+    return await _turnoRepository.findByClienteTelefono(telefono);
   }
 }

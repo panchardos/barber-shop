@@ -57,7 +57,7 @@ void main() {
       final turno = crearTurno();
       await adapter.save(turno);
 
-      final turnos = adapter.findByDate('2026-10-26');
+      final turnos = await adapter.findByDate('2026-10-26');
 
       expect(turnos, hasLength(1));
       expect(turnos.single.id, turno.id);
@@ -67,8 +67,8 @@ void main() {
     test('detecta un horario ocupado', () async {
       await adapter.save(crearTurno());
 
-      expect(adapter.existsAtTime('2026-10-26', '10:30'), isTrue);
-      expect(adapter.existsAtTime('2026-10-26', '11:00'), isFalse);
+      expect(await adapter.existsAtTime('2026-10-26', '10:30'), isTrue);
+      expect(await adapter.existsAtTime('2026-10-26', '11:00'), isFalse);
     });
 
     test('ordena el historial por fecha y hora descendente', () async {
@@ -82,7 +82,7 @@ void main() {
         crearTurno(id: 'TRN-3', fecha: '2026-10-26', hora: '11:00'),
       );
 
-      final historial = adapter.findByClienteTelefono('2611234567');
+      final historial = await adapter.findByClienteTelefono('2611234567');
 
       expect(historial.map((t) => t.id), ['TRN-3', 'TRN-2', 'TRN-1']);
     });
@@ -93,7 +93,7 @@ void main() {
       final nuevoAdapter = SqfliteTurnoAdapter(database);
       await nuevoAdapter.init();
 
-      expect(nuevoAdapter.findByDate('2026-10-26'), hasLength(1));
+      expect(await nuevoAdapter.findByDate('2026-10-26'), hasLength(1));
     });
 
     test('elimina un turno existente', () async {
@@ -101,8 +101,8 @@ void main() {
 
       await adapter.delete('TRN-1');
 
-      expect(adapter.findByDate('2026-10-26'), isEmpty);
-      expect(adapter.existsAtTime('2026-10-26', '10:30'), isFalse);
+      expect(await adapter.findByDate('2026-10-26'), isEmpty);
+      expect(await adapter.existsAtTime('2026-10-26', '10:30'), isFalse);
     });
 
     test('informa cuando el turno a eliminar no existe', () async {

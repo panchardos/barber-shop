@@ -2,6 +2,7 @@ import 'package:barber_shop/domain/entities/configuracion_agenda.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
+import 'package:barber_shop/domain/ports/auth_repository.dart';
 import 'package:barber_shop/domain/ports/configuracion_repository.dart';
 import 'package:barber_shop/domain/ports/servicio_repository.dart';
 import 'package:barber_shop/domain/ports/turno_repository.dart';
@@ -28,12 +29,12 @@ class FakeTurnoRepository implements TurnoRepository {
   }
 
   @override
-  bool existsAtTime(String fechaYMD, String hora) {
+  Future<bool> existsAtTime(String fechaYMD, String hora) async {
     return turnos.any((t) => t.fechaYMD == fechaYMD && t.hora == hora);
   }
 
   @override
-  List<Turno> findByDate(String fechaYMD) {
+  Future<List<Turno>> findByDate(String fechaYMD) async {
     return turnos.where((t) => t.fechaYMD == fechaYMD).toList();
   }
 
@@ -51,7 +52,7 @@ class FakeTurnoRepository implements TurnoRepository {
   }
 
   @override
-  List<Turno> findByClienteTelefono(String telefono) {
+  Future<List<Turno>> findByClienteTelefono(String telefono) async {
     return turnos.where((t) => t.cliente.telefono == telefono).toList();
   }
 }
@@ -65,12 +66,12 @@ class FakeServicioRepository implements ServicioRepository {
   bool failOnUpdate = false;
 
   @override
-  List<Servicio> findAll() {
+  Future<List<Servicio>> findAll() async {
     return List.unmodifiable(servicios);
   }
 
   @override
-  Servicio? findById(String id) {
+  Future<Servicio?> findById(String id) async {
     for (final servicio in servicios) {
       if (servicio.id == id) {
         return servicio;
@@ -141,4 +142,34 @@ class FakeConfiguracionRepository implements ConfiguracionRepository {
   Future<bool> getModoOscuro() async {
     return modoOscuro;
   }
+}
+
+class FakeAuthRepository implements AuthRepository {
+  bool autenticado = false;
+  bool failOnLogin = false;
+  String? _token;
+
+  @override
+  Future<void> login({
+    required String usuario,
+    required String password,
+  }) async {
+    if (failOnLogin) {
+      throw AuthenticationFailureException('Credenciales inválidas.');
+    }
+    autenticado = true;
+    _token = 'token-demo';
+  }
+
+  @override
+  Future<void> logout() async {
+    autenticado = false;
+    _token = null;
+  }
+
+  @override
+  bool get estaAutenticado => autenticado;
+
+  @override
+  String? get token => _token;
 }

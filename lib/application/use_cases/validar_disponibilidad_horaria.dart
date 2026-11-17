@@ -27,7 +27,7 @@ class ValidarDisponibilidadHorariaUseCase {
     }
 
     final configuracion = await _configuracionRepository.getHorarioAtencion();
-    final turnosDelDia = _turnoRepository.findByDate(fechaYMD);
+    final turnosDelDia = await _turnoRepository.findByDate(fechaYMD);
 
     return _disponibilidadService.estaDisponible(
       fechaYMD: fechaYMD,

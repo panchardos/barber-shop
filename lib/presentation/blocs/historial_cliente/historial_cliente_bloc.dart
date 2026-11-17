@@ -1,4 +1,4 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/obtener_historial_cliente.dart';
 import '../../utils/demo_config.dart';
@@ -31,7 +31,7 @@ class HistorialClienteBloc
     emit(const HistorialClienteLoading());
     await DemoConfig.pausa();
     try {
-      final turnos = _obtenerHistorial.execute(telefono);
+      final turnos = await _obtenerHistorial.execute(telefono);
       emit(HistorialClienteLoaded(turnos));
     } catch (e) {
       emit(HistorialClienteError(e.toString()));

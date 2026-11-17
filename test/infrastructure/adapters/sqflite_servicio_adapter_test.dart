@@ -31,9 +31,9 @@ void main() {
   });
 
   group('SqfliteServicioAdapter', () {
-    test('carga los servicios base sembrados por la base de datos', () {
-      expect(adapter.findAll(), hasLength(4));
-      expect(adapter.findById('1')!.nombre, 'Corte Tradicional');
+    test('carga los servicios base sembrados por la base de datos', () async {
+      expect(await adapter.findAll(), hasLength(4));
+      expect((await adapter.findById('1'))!.nombre, 'Corte Tradicional');
     });
 
     test('guarda un servicio nuevo', () async {
@@ -46,15 +46,15 @@ void main() {
         ),
       );
 
-      expect(adapter.findAll(), hasLength(5));
-      expect(adapter.findById('5')!.nombre, 'Coloración');
-      expect(adapter.findById('5')!.precio, 12000);
+      expect(await adapter.findAll(), hasLength(5));
+      expect((await adapter.findById('5'))!.nombre, 'Coloración');
+      expect((await adapter.findById('5'))!.precio, 12000);
     });
 
     test('actualiza el precio y lo persiste en SQLite', () async {
       await adapter.updatePrecio('1', 6500);
 
-      expect(adapter.findById('1')!.precio, 6500);
+      expect((await adapter.findById('1'))!.precio, 6500);
 
       final filas = await database.query(
         'servicios',

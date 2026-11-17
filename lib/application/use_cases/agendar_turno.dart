@@ -36,7 +36,7 @@ class AgendarTurnoUseCase {
     }
 
     final configuracion = await _configuracionRepository.getHorarioAtencion();
-    final turnosDelDia = _turnoRepository.findByDate(fechaYMD);
+    final turnosDelDia = await _turnoRepository.findByDate(fechaYMD);
 
     final disponible = _disponibilidadService.estaDisponible(
       fechaYMD: fechaYMD,

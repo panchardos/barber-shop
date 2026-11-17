@@ -1,4 +1,4 @@
-﻿import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/cancelar_turno.dart';
 import '../../../application/use_cases/obtener_turnos_por_dia.dart';
@@ -29,7 +29,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
     await DemoConfig.pausa();
 
     try {
-      final turnos = _obtenerTurnos.execute(fechaYMD(fecha));
+      final turnos = await _obtenerTurnos.execute(fechaYMD(fecha));
       emit(AgendaAdminLoaded(turnos: turnos, fecha: fecha));
     } catch (e) {
       emit(AgendaAdminError(e.toString()));
@@ -61,7 +61,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
     await DemoConfig.pausa();
 
     try {
-      final turnos = _obtenerTurnos.execute(fechaYMD(fecha));
+      final turnos = await _obtenerTurnos.execute(fechaYMD(fecha));
       emit(
         actual.copyWith(
           fecha: fecha,
@@ -101,7 +101,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
 
     try {
       await _cancelarTurno.execute(event.turno.id);
-      final turnos = _obtenerTurnos.execute(fechaYMD(actual.fecha));
+      final turnos = await _obtenerTurnos.execute(fechaYMD(actual.fecha));
 
       emit(
         actual.copyWith(
@@ -127,7 +127,7 @@ class AgendaAdminBloc extends Bloc<AgendaAdminEvent, AgendaAdminState> {
 
     emit(actual.copyWith(cargando: true, errorMessage: null));
     await DemoConfig.pausa();
-    final turnos = _obtenerTurnos.execute(fechaYMD(actual.fecha));
+    final turnos = await _obtenerTurnos.execute(fechaYMD(actual.fecha));
     emit(actual.copyWith(turnos: turnos, cargando: false));
   }
 

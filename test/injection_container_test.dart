@@ -8,15 +8,21 @@ import 'package:barber_shop/application/use_cases/obtener_historial_cliente.dart
 import 'package:barber_shop/application/use_cases/obtener_horarios_disponibles.dart';
 import 'package:barber_shop/application/use_cases/obtener_turnos_por_dia.dart';
 import 'package:barber_shop/application/use_cases/validar_disponibilidad_horaria.dart';
+import 'package:barber_shop/application/use_cases/cerrar_sesion_admin.dart';
+import 'package:barber_shop/application/use_cases/iniciar_sesion_admin.dart';
+import 'package:barber_shop/application/use_cases/verificar_sesion_admin.dart';
+import 'package:barber_shop/domain/ports/auth_repository.dart';
 import 'package:barber_shop/domain/ports/configuracion_repository.dart';
 import 'package:barber_shop/domain/ports/servicio_repository.dart';
 import 'package:barber_shop/domain/ports/turno_repository.dart';
+import 'package:barber_shop/infrastructure/adapters/allow_all_auth_adapter.dart';
 import 'package:barber_shop/infrastructure/adapters/in_memory_configuracion_adapter.dart';
 import 'package:barber_shop/infrastructure/adapters/in_memory_servicio_adapter.dart';
 import 'package:barber_shop/infrastructure/adapters/in_memory_turno_adapter.dart';
 import 'package:barber_shop/domain/services/disponibilidad_horaria_service.dart';
 import 'package:barber_shop/injection_container.dart';
 import 'package:barber_shop/presentation/blocs/agenda_admin/agenda_admin_bloc.dart';
+import 'package:barber_shop/presentation/blocs/auth/auth_bloc.dart';
 import 'package:barber_shop/presentation/blocs/configuracion_agenda/configuracion_agenda_bloc.dart';
 import 'package:barber_shop/presentation/blocs/historial_cliente/historial_cliente_bloc.dart';
 import 'package:barber_shop/presentation/blocs/reserva/reserva_bloc.dart';
@@ -25,7 +31,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUpAll(() async {
-    await initDependencies(useRealStorage: false);
+    await initDependencies(mode: StorageMode.memory);
   });
 
   tearDownAll(() async {
@@ -38,6 +44,16 @@ void main() {
     expect(
       getIt<ConfiguracionRepository>(),
       isA<InMemoryConfiguracionAdapter>(),
+    );
+    expect(getIt<AuthRepository>(), isA<AllowAllAuthAdapter>());
+    expect(
+      getIt<IniciarSesionAdminUseCase>(),
+      isA<IniciarSesionAdminUseCase>(),
+    );
+    expect(getIt<CerrarSesionAdminUseCase>(), isA<CerrarSesionAdminUseCase>());
+    expect(
+      getIt<VerificarSesionAdminUseCase>(),
+      isA<VerificarSesionAdminUseCase>(),
     );
 
     expect(getIt<AgendarTurnoUseCase>(), isA<AgendarTurnoUseCase>());
@@ -92,6 +108,10 @@ void main() {
     final configuracion2 = getIt<ConfiguracionAgendaBloc>();
     expect(configuracion1, isNot(same(configuracion2)));
 
+    final auth1 = getIt<AuthBloc>();
+    final auth2 = getIt<AuthBloc>();
+    expect(auth1, isNot(same(auth2)));
+
     final historial1 = getIt<HistorialClienteBloc>();
     final historial2 = getIt<HistorialClienteBloc>();
     expect(historial1, isNot(same(historial2)));
@@ -107,6 +127,8 @@ void main() {
       configuracion2.close(),
       historial1.close(),
       historial2.close(),
+      auth1.close(),
+      auth2.close(),
     ]);
   });
 }

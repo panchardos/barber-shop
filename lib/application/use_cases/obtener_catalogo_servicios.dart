@@ -6,7 +6,7 @@ class ObtenerCatalogoServiciosUseCase {
 
   ObtenerCatalogoServiciosUseCase(this._servicioRepository);
 
-  List<Servicio> execute() {
-    return _servicioRepository.findAll();
+  Future<List<Servicio>> execute() async {
+    return await _servicioRepository.findAll();
   }
 }

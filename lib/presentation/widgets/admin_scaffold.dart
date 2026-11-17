@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../app_routes.dart';
+import '../blocs/auth/auth_bloc.dart';
+import '../blocs/auth/auth_event.dart';
 import '../theme/app_theme.dart';
 
 enum AdminSection { agenda, servicios, configuracion, historial }
@@ -112,6 +115,15 @@ class _AdminDrawer extends StatelessWidget {
             ),
             const Spacer(),
             const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Cerrar sesión'),
+              onTap: () {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                context.read<AuthBloc>().add(const AuthLogoutSolicitado());
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.storefront_outlined),
               title: const Text('Volver al sitio'),
