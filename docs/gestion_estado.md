@@ -60,8 +60,10 @@ lib/presentation/
 | `ServiciosAdminBloc` | `ServiciosAdminCargados`, `ServicioCreado`, `PrecioServicioActualizado`, `ServiciosAdminMensajeLimpiado` | `ServiciosAdminInitial`, `ServiciosAdminLoading`, `ServiciosAdminLoaded`, `ServiciosAdminError` |
 | `ConfiguracionAgendaBloc` | `ConfiguracionAgendaCargada`, `ConfiguracionAgendaGuardada`, `ConfiguracionAgendaMensajeLimpiado` | `ConfiguracionAgendaInitial`, `ConfiguracionAgendaLoading`, `ConfiguracionAgendaLoaded`, `ConfiguracionAgendaError` |
 | `HistorialClienteBloc` | `HistorialClienteBuscado` | `HistorialClienteInitial`, `HistorialClienteLoading`, `HistorialClienteLoaded`, `HistorialClienteError` |
+| `AuthBloc` | `AuthIniciado`, `AuthLoginSolicitado`, `AuthLogoutSolicitado` | `AuthInitial`, `AuthLoading`, `AuthAuthenticated`, `AuthUnauthenticated`, `AuthError` |
+| `BloqueosAdminBloc` | `BloqueosAdminCargados`, `BloqueoAgregado`, `BloqueoEliminado`, `BloqueosAdminMensajeLimpiado` | `BloqueosAdminInitial`, `BloqueosAdminLoading`, `BloqueosAdminLoaded`, `BloqueosAdminError` |
 
-`ReservaBloc` se reutiliza en la reserva pública y en el alta manual del administrador.
+`ReservaBloc` se reutiliza en la reserva pública y en el alta manual del administrador. `BloqueosAdminBloc` gobierna los bloqueos excepcionales y `AuthBloc` la sesión del panel.
 
 ## Ejemplo de estado sellado
 

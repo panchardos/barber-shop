@@ -277,9 +277,9 @@ lib/
 
 ## Limitaciones actuales
 
-- El modelo `Turno` no tiene estado (`Reservado`, `Cancelado`); la cancelación elimina el registro.
+- El modelo `Turno` tiene estado (`Reservado`, `Cancelado`); la cancelación conserva el registro y el historial muestra los cancelados.
 - En modo local no hay autenticación; en modo web el panel administrador requiere login.
-- No se implementaron bloqueos excepcionales por día/hora ni horario de almuerzo.
+- El administrador puede configurar una pausa diaria y bloqueos por día o rango horario.
 - No existe todavía la galería de cortes ni la cancelación autónoma del cliente.
 - No hay recordatorios automáticos.
 - La persistencia real con `sqflite` está pensada para Android/iOS. Para escritorio o pruebas de integración se usa `sqflite_common_ffi`.

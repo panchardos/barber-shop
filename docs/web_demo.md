@@ -101,6 +101,7 @@ GET  /api/health
 GET  /api/services
 GET  /api/config
 GET  /api/ocupados?fecha=YYYY-MM-DD
+GET  /api/bloqueos?fecha=YYYY-MM-DD
 POST /api/appointments
 POST /api/auth/login
 ```
@@ -114,6 +115,8 @@ DELETE /api/appointments/:id
 POST   /api/services
 PATCH  /api/services/:id/price
 PUT    /api/config
+POST   /api/bloqueos
+DELETE /api/bloqueos/:id
 POST   /api/demo/reset
 ```
 
@@ -159,5 +162,4 @@ build servido por el backend, que evita CORS.
 - Sin autenticación de clientes.
 - Sin galería.
 - Sin recordatorios.
-- Sin bloqueos excepcionales ni almuerzo.
-- Sin migraciones de esquema del servidor más allá de la versión inicial.
+- El esquema del servidor se migra desde la versión inicial a la actual.

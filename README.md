@@ -160,8 +160,9 @@ Las pruebas cubren:
 - `registerFactory` devolviendo instancias nuevas de cada BLoC.
 - Construcción de las páginas y navegación cliente/admin.
 - Adaptadores remotos HTTP y autenticación de administrador.
+- Cancelación con estado persistido, bloqueos excepcionales y pausa diaria.
 
-Actualmente la suite contiene **114 tests de Flutter** y **18 tests del
+Actualmente la suite contiene **134 tests de Flutter** y **22 tests del
 backend**.
 
 La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.
