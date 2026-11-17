@@ -109,14 +109,36 @@ flutter run
 
 La aplicación inicia con persistencia real:
 
-- SQLite para turnos y servicios.
-- SharedPreferences para configuración.
+- Android/iOS: SQLite para turnos y servicios + SharedPreferences para configuración.
+- Web: API remota servida por el backend de demo.
 
-Para usar almacenamiento en memoria durante pruebas:
+Modos de almacenamiento:
 
 ```dart
-await initDependencies(useRealStorage: false);
+await initDependencies(mode: StorageMode.local);   // SQLite + SharedPreferences
+await initDependencies(mode: StorageMode.remote);  // API HTTP
+await initDependencies(mode: StorageMode.memory);  // tests
 ```
+
+## Demo Web por Wi-Fi
+
+El proyecto incluye un backend Dart Shelf + SQLite que sirve Flutter Web y la
+API en el mismo puerto. Está pensado para una demo presencial con celulares en
+la misma red Wi-Fi.
+
+```powershell
+.\run_demo.ps1
+```
+
+El script compila Flutter Web, inicia el servidor y muestra las IPs para abrir
+desde el celular.
+
+- Documentación: [Demo Web](docs/web_demo.md)
+- Backend: `server/`
+- Configuración local: `server/.env` (ignorado por Git)
+- El panel administrador requiere login.
+- El cliente es anónimo.
+- No se publica en internet.
 
 ## Análisis y pruebas
 
@@ -137,8 +159,10 @@ Las pruebas cubren:
 - BLoCs: estados Initial, Loading, Loaded, Success y Error; eventos y acciones de cada flujo.
 - `registerFactory` devolviendo instancias nuevas de cada BLoC.
 - Construcción de las páginas y navegación cliente/admin.
+- Adaptadores remotos HTTP y autenticación de administrador.
 
-Actualmente la suite contiene **102 tests**.
+Actualmente la suite contiene **114 tests de Flutter** y **18 tests del
+backend**.
 
 La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.
 
@@ -166,6 +190,7 @@ La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de 
 - [HU del TP5](docs/hu_tp5.md)
 - [Arquitectura y persistencia](docs/arquitectura_tp5.md)
 - [Gestión de estado con BLoC](docs/gestion_estado.md)
+- [Demo Web y backend](docs/web_demo.md)
 - [BPMN del administrador](docs/admin_calendario.md)
 - [BPMN de reserva de clientes](docs/reserva_clientes.md)
 

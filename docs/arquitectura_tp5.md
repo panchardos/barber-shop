@@ -207,6 +207,8 @@ La aplicación abre en la reserva del cliente. El panel administrador se abre de
 
 La presentación evolucionó en el TP6 a una arquitectura BLoC: las páginas no invocan casos de uso, sino que despachan eventos a gestores registrados con `registerFactory`. El detalle está en [Gestión de estado](gestion_estado.md).
 
+Para la demo web se agregó un backend Dart Shelf con SQLite y adaptadores HTTP. Flutter Web se sirve desde el mismo backend para evitar CORS. El detalle está en [Demo Web y backend](web_demo.md).
+
 ---
 
 ## Decisiones técnicas
@@ -276,7 +278,7 @@ lib/
 ## Limitaciones actuales
 
 - El modelo `Turno` no tiene estado (`Reservado`, `Cancelado`); la cancelación elimina el registro.
-- No hay autenticación: el panel administrador se abre directamente desde la pantalla pública.
+- En modo local no hay autenticación; en modo web el panel administrador requiere login.
 - No se implementaron bloqueos excepcionales por día/hora ni horario de almuerzo.
 - No existe todavía la galería de cortes ni la cancelación autónoma del cliente.
 - No hay recordatorios automáticos.
