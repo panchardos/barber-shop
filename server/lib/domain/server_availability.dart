@@ -6,6 +6,7 @@ class ServerAvailability {
     required Map<String, dynamic> config,
     required Map<String, dynamic> service,
     required List<Map<String, dynamic>> occupied,
+    List<Map<String, dynamic>> bloqueos = const [],
     DateTime? now,
   }) {
     final apertura = _parseHora(config['apertura'] as String?);
@@ -32,15 +33,33 @@ class ServerAvailability {
       );
     }
 
+    final pausaInicioRaw = config['pausa_inicio'] as String?;
+    final pausaFinRaw = config['pausa_fin'] as String?;
+    final pausa = _resolverPausa(
+      apertura: apertura,
+      cierre: cierre,
+      pausaInicioRaw: pausaInicioRaw,
+      pausaFinRaw: pausaFinRaw,
+    );
+
     final momento = now ?? DateTime.now();
     final fechaActual = _fechaYMD(momento);
     if (fechaYMD.compareTo(fechaActual) < 0) {
       return const [];
     }
 
+    if (bloqueos.any(
+      (bloqueo) => (bloqueo['todo_el_dia'] as int? ?? 0) == 1,
+    )) {
+      return const [];
+    }
+
     final esHoy = fechaYMD == fechaActual;
     final minutosActuales = (momento.hour * 60) + momento.minute;
     final rangosOcupados = <_Rango>[];
+    if (pausa != null) {
+      rangosOcupados.add(pausa);
+    }
 
     for (final turno in occupied) {
       final inicio = _parseHora(turno['hora'] as String?);
@@ -49,6 +68,18 @@ class ServerAvailability {
         continue;
       }
       rangosOcupados.add(_Rango(inicio, inicio + duracion));
+    }
+
+    for (final bloqueo in bloqueos) {
+      if ((bloqueo['todo_el_dia'] as int? ?? 0) == 1) continue;
+      final inicio = _parseHora(bloqueo['hora_inicio'] as String?);
+      final fin = _parseHora(bloqueo['hora_fin'] as String?);
+      if (inicio == null || fin == null || inicio >= fin) {
+        throw const FormatException(
+          'El bloqueo tiene un rango horario inválido.',
+        );
+      }
+      rangosOcupados.add(_Rango(inicio, fin));
     }
 
     final horarios = <String>[];
@@ -80,6 +111,7 @@ class ServerAvailability {
     required Map<String, dynamic> config,
     required Map<String, dynamic> service,
     required List<Map<String, dynamic>> occupied,
+    List<Map<String, dynamic>> bloqueos = const [],
     DateTime? now,
   }) {
     return availableSlots(
@@ -87,6 +119,7 @@ class ServerAvailability {
       config: config,
       service: service,
       occupied: occupied,
+      bloqueos: bloqueos,
       now: now,
     ).contains(hora);
   }
@@ -95,6 +128,8 @@ class ServerAvailability {
     required String apertura,
     required String cierre,
     required int duracionBloqueMinutos,
+    String? pausaInicio,
+    String? pausaFin,
   }) {
     final inicio = _parseHora(apertura);
     final fin = _parseHora(cierre);
@@ -109,6 +144,40 @@ class ServerAvailability {
         'La duración de bloque debe ser mayor a cero.',
       );
     }
+    _resolverPausa(
+      apertura: inicio,
+      cierre: fin,
+      pausaInicioRaw: pausaInicio,
+      pausaFinRaw: pausaFin,
+    );
+  }
+
+  static _Rango? _resolverPausa({
+    required int apertura,
+    required int cierre,
+    required String? pausaInicioRaw,
+    required String? pausaFinRaw,
+  }) {
+    if (pausaInicioRaw == null && pausaFinRaw == null) {
+      return null;
+    }
+
+    final inicio = pausaInicioRaw == null ? null : _parseHora(pausaInicioRaw);
+    final fin = pausaFinRaw == null ? null : _parseHora(pausaFinRaw);
+    if (inicio == null || fin == null) {
+      throw const FormatException(
+        'La pausa debe tener horas válidas en formato HH:MM.',
+      );
+    }
+    if (inicio >= fin) {
+      throw const FormatException('La pausa debe comenzar antes de terminar.');
+    }
+    if (inicio < apertura || fin > cierre) {
+      throw const FormatException(
+        'La pausa debe estar dentro del horario de atención.',
+      );
+    }
+    return _Rango(inicio, fin);
   }
 
   static int? _parseHora(String? hora) {

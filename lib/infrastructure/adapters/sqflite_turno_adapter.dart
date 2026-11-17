@@ -1,7 +1,9 @@
 import 'package:sqflite/sqflite.dart';
+
+import '../../domain/entities/estado_turno.dart';
 import '../../domain/entities/turno.dart';
-import '../../domain/ports/turno_repository.dart';
 import '../../domain/exceptions/domain_exceptions.dart';
+import '../../domain/ports/turno_repository.dart';
 import '../models/turno_model.dart';
 
 class SqfliteTurnoAdapter implements TurnoRepository {
@@ -50,30 +52,54 @@ class SqfliteTurnoAdapter implements TurnoRepository {
 
   @override
   Future<List<Turno>> findByDate(String fechaYMD) async {
-    final result = _cache.where((t) => t.fechaYMD == fechaYMD).toList();
+    final result = _cache
+        .where(
+          (t) =>
+              t.fechaYMD == fechaYMD && t.estado == EstadoTurno.reservado,
+        )
+        .toList();
     result.sort((a, b) => a.hora.compareTo(b.hora));
     return result;
   }
 
   @override
   Future<bool> existsAtTime(String fechaYMD, String hora) async {
-    return _cache.any((t) => t.fechaYMD == fechaYMD && t.hora == hora);
+    return _cache.any(
+      (t) =>
+          t.fechaYMD == fechaYMD &&
+          t.hora == hora &&
+          t.estado == EstadoTurno.reservado,
+    );
   }
 
   @override
-  Future<void> delete(String id) async {
+  Future<void> cancelar(String id) async {
     final index = _cache.indexWhere((t) => t.id == id);
     if (index < 0) {
       throw TurnoNotFoundException(id);
     }
-
-    try {
-      await _db.delete('turnos', where: 'id = ?', whereArgs: [id]);
-    } catch (e) {
-      throw PersistenceFailureException("No se pudo eliminar el turno $id: $e");
+    if (_cache[index].estado == EstadoTurno.cancelado) {
+      return;
     }
 
-    _cache.removeAt(index);
+    try {
+      final filas = await _db.update(
+        'turnos',
+        {'estado': EstadoTurno.cancelado.value},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (filas == 0) {
+        throw TurnoNotFoundException(id);
+      }
+    } catch (e) {
+      if (e is TurnoNotFoundException) rethrow;
+      throw PersistenceFailureException(
+        "No se pudo cancelar el turno $id: $e",
+      );
+    }
+
+    _cache[index] = _cache[index].copyWith(estado: EstadoTurno.cancelado);
   }
 
   /// Método para HU 8: Historial por teléfono de cliente.

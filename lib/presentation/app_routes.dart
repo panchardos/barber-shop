@@ -4,4 +4,5 @@ class AppRoutes {
   static const adminServicios = '/admin/servicios';
   static const adminConfiguracion = '/admin/configuracion';
   static const adminHistorial = '/admin/historial';
+  static const adminBloqueos = '/admin/bloqueos';
 }

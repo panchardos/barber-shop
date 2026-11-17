@@ -6,7 +6,7 @@ import '../models/servicio_model.dart';
 
 class BarberiaDatabase {
   static const String databaseName = 'barberia.db';
-  static const int databaseVersion = 2;
+  static const int databaseVersion = 4;
 
   static Future<Database> open({DatabaseFactory? factory, String? path}) async {
     try {
@@ -32,6 +32,7 @@ class BarberiaDatabase {
   static Future<void> _onCreate(Database db, int version) async {
     await _createTurnosTable(db);
     await _createServiciosTable(db);
+    await _createBloqueosTable(db);
     await _seedServicios(db);
   }
 
@@ -43,6 +44,14 @@ class BarberiaDatabase {
     if (oldVersion < 2) {
       await _createServiciosTable(db);
       await _seedServicios(db);
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+        "ALTER TABLE turnos ADD COLUMN estado TEXT NOT NULL DEFAULT 'reservado'",
+      );
+    }
+    if (oldVersion < 4) {
+      await _createBloqueosTable(db);
     }
   }
 
@@ -57,7 +66,21 @@ class BarberiaDatabase {
         servicio_duracion INTEGER NOT NULL,
         servicio_precio REAL NOT NULL,
         fecha_ymd TEXT NOT NULL,
-        hora TEXT NOT NULL
+        hora TEXT NOT NULL,
+        estado TEXT NOT NULL DEFAULT 'reservado'
+      )
+    ''');
+  }
+
+  static Future<void> _createBloqueosTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE bloqueos (
+        id TEXT PRIMARY KEY,
+        fecha_ymd TEXT NOT NULL,
+        todo_el_dia INTEGER NOT NULL DEFAULT 0,
+        hora_inicio TEXT,
+        hora_fin TEXT,
+        motivo TEXT
       )
     ''');
   }

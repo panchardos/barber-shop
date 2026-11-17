@@ -1,4 +1,5 @@
 import 'package:barber_shop/domain/entities/cliente.dart';
+import 'package:barber_shop/domain/entities/estado_turno.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/infrastructure/models/turno_model.dart';
@@ -32,6 +33,7 @@ void main() {
       expect(entity.servicio.precio, turno.servicio.precio);
       expect(entity.fechaYMD, turno.fechaYMD);
       expect(entity.hora, turno.hora);
+      expect(entity.estado, EstadoTurno.reservado);
     });
 
     test('convierte a mapa SQLite y de vuelta al modelo', () {

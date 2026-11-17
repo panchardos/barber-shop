@@ -1,8 +1,11 @@
+import 'package:barber_shop/domain/entities/bloqueo.dart';
 import 'package:barber_shop/domain/entities/configuracion_agenda.dart';
+import 'package:barber_shop/domain/entities/estado_turno.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
 import 'package:barber_shop/domain/ports/auth_repository.dart';
+import 'package:barber_shop/domain/ports/bloqueo_repository.dart';
 import 'package:barber_shop/domain/ports/configuracion_repository.dart';
 import 'package:barber_shop/domain/ports/servicio_repository.dart';
 import 'package:barber_shop/domain/ports/turno_repository.dart';
@@ -12,7 +15,7 @@ class FakeTurnoRepository implements TurnoRepository {
 
   final List<Turno> turnos;
   bool failOnSave = false;
-  bool failOnDelete = false;
+  bool failOnCancelar = false;
 
   @override
   Future<void> save(Turno turno) async {
@@ -30,12 +33,62 @@ class FakeTurnoRepository implements TurnoRepository {
 
   @override
   Future<bool> existsAtTime(String fechaYMD, String hora) async {
-    return turnos.any((t) => t.fechaYMD == fechaYMD && t.hora == hora);
+    return turnos.any(
+      (t) =>
+          t.fechaYMD == fechaYMD &&
+          t.hora == hora &&
+          t.estado == EstadoTurno.reservado,
+    );
   }
 
   @override
   Future<List<Turno>> findByDate(String fechaYMD) async {
-    return turnos.where((t) => t.fechaYMD == fechaYMD).toList();
+    return turnos
+        .where(
+          (t) =>
+              t.fechaYMD == fechaYMD && t.estado == EstadoTurno.reservado,
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> cancelar(String id) async {
+    if (failOnCancelar) {
+      throw PersistenceFailureException('Fallo simulado al cancelar');
+    }
+
+    final index = turnos.indexWhere((t) => t.id == id);
+    if (index < 0) {
+      throw TurnoNotFoundException(id);
+    }
+    turnos[index] = turnos[index].copyWith(estado: EstadoTurno.cancelado);
+  }
+
+  @override
+  Future<List<Turno>> findByClienteTelefono(String telefono) async {
+    return turnos.where((t) => t.cliente.telefono == telefono).toList();
+  }
+}
+
+class FakeBloqueoRepository implements BloqueoRepository {
+  FakeBloqueoRepository({List<Bloqueo>? bloqueos})
+    : bloqueos = bloqueos ?? [];
+
+  final List<Bloqueo> bloqueos;
+  bool failOnSave = false;
+  bool failOnDelete = false;
+
+  @override
+  Future<void> save(Bloqueo bloqueo) async {
+    if (failOnSave) {
+      throw PersistenceFailureException('Fallo simulado al guardar');
+    }
+    final index = bloqueos.indexWhere((b) => b.id == bloqueo.id);
+    if (index >= 0) {
+      bloqueos[index] = bloqueo;
+    } else {
+      bloqueos.add(bloqueo);
+    }
   }
 
   @override
@@ -43,17 +96,18 @@ class FakeTurnoRepository implements TurnoRepository {
     if (failOnDelete) {
       throw PersistenceFailureException('Fallo simulado al eliminar');
     }
-
-    final index = turnos.indexWhere((t) => t.id == id);
+    final index = bloqueos.indexWhere((b) => b.id == id);
     if (index < 0) {
-      throw TurnoNotFoundException(id);
+      throw BloqueoNotFoundException(id);
     }
-    turnos.removeAt(index);
+    bloqueos.removeAt(index);
   }
 
   @override
-  Future<List<Turno>> findByClienteTelefono(String telefono) async {
-    return turnos.where((t) => t.cliente.telefono == telefono).toList();
+  Future<List<Bloqueo>> findByDate(String fechaYMD) async {
+    return bloqueos
+        .where((bloqueo) => bloqueo.fechaYMD == fechaYMD)
+        .toList();
   }
 }
 

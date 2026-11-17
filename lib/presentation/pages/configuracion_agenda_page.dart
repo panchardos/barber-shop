@@ -36,12 +36,16 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
   final _aperturaCtrl = TextEditingController();
   final _cierreCtrl = TextEditingController();
   final _intervaloCtrl = TextEditingController();
+  final _pausaInicioCtrl = TextEditingController();
+  final _pausaFinCtrl = TextEditingController();
 
   @override
   void dispose() {
     _aperturaCtrl.dispose();
     _cierreCtrl.dispose();
     _intervaloCtrl.dispose();
+    _pausaInicioCtrl.dispose();
+    _pausaFinCtrl.dispose();
     super.dispose();
   }
 
@@ -65,6 +69,12 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
       return 'Debe ser un número mayor a 0';
     }
     return null;
+  }
+
+  String? _validarHoraOpcional(String? value) {
+    final hora = value?.trim() ?? '';
+    if (hora.isEmpty) return null;
+    return _validarHora(hora);
   }
 
   int? _horaAMinutos(String hora) {
@@ -96,11 +106,57 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
       return;
     }
 
+    final pausaInicio = _pausaInicioCtrl.text.trim();
+    final pausaFin = _pausaFinCtrl.text.trim();
+    if (pausaInicio.isEmpty != pausaFin.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Completá las dos horas de la pausa o dejá ambas vacías'),
+          backgroundColor: AppColors.rojo,
+        ),
+      );
+      return;
+    }
+
+    if (pausaInicio.isNotEmpty) {
+      final inicioMin = _horaAMinutos(pausaInicio);
+      final finMin = _horaAMinutos(pausaFin);
+      if (inicioMin == null || finMin == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La pausa debe usar el formato HH:MM'),
+            backgroundColor: AppColors.rojo,
+          ),
+        );
+        return;
+      }
+      if (inicioMin >= finMin) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La pausa debe comenzar antes de terminar'),
+            backgroundColor: AppColors.rojo,
+          ),
+        );
+        return;
+      }
+      if (inicioMin < aperturaMinutos || finMin > cierreMinutos) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La pausa debe estar dentro del horario de atención'),
+            backgroundColor: AppColors.rojo,
+          ),
+        );
+        return;
+      }
+    }
+
     context.read<ConfiguracionAgendaBloc>().add(
       ConfiguracionAgendaGuardada(
         apertura: apertura,
         cierre: cierre,
         duracionBloque: int.parse(_intervaloCtrl.text.trim()),
+        pausaInicio: pausaInicio.isEmpty ? null : pausaInicio,
+        pausaFin: pausaFin.isEmpty ? null : pausaFin,
       ),
     );
   }
@@ -109,6 +165,8 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
     final apertura = state.configuracion.apertura;
     final cierre = state.configuracion.cierre;
     final duracion = state.configuracion.duracionBloqueMinutos.toString();
+    final pausaInicio = state.configuracion.pausaInicio ?? '';
+    final pausaFin = state.configuracion.pausaFin ?? '';
 
     if (_aperturaCtrl.text != apertura) {
       _aperturaCtrl.text = apertura;
@@ -118,6 +176,12 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
     }
     if (_intervaloCtrl.text != duracion) {
       _intervaloCtrl.text = duracion;
+    }
+    if (_pausaInicioCtrl.text != pausaInicio) {
+      _pausaInicioCtrl.text = pausaInicio;
+    }
+    if (_pausaFinCtrl.text != pausaFin) {
+      _pausaFinCtrl.text = pausaFin;
     }
   }
 
@@ -212,6 +276,30 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
                         prefixIcon: Icon(Icons.timer),
                       ),
                       validator: _validarDuracion,
+                    ),
+                    const SizedBox(height: 24),
+                    const SectionTitle('Pausa / almuerzo (opcional)'),
+                    const Text(
+                      'Si completás ambas horas, no se ofrecerán turnos durante ese rango.',
+                      style: AppTextStyles.muted,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _pausaInicioCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Inicio de la pausa (HH:MM)',
+                        prefixIcon: Icon(Icons.free_breakfast_outlined),
+                      ),
+                      validator: _validarHoraOpcional,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _pausaFinCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Fin de la pausa (HH:MM)',
+                        prefixIcon: Icon(Icons.free_breakfast_outlined),
+                      ),
+                      validator: _validarHoraOpcional,
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(

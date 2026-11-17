@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/estado_turno.dart';
 import '../../domain/entities/turno.dart';
 import '../../injection_container.dart';
 import '../blocs/historial_cliente/historial_cliente_bloc.dart';
@@ -167,9 +168,17 @@ class _ListaHistorial extends StatelessWidget {
                         'Fecha: ${turno.fechaYMD} | Hora: ${turno.hora}',
                         style: AppTextStyles.muted,
                       ),
+                      if (turno.estado == EstadoTurno.cancelado) ...[
+                        const SizedBox(height: 6),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: _EstadoCancelado(),
+                        ),
+                      ],
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
                 Flexible(
                   child: Text(
                     turno.cliente.nombre,
@@ -184,6 +193,30 @@ class _ListaHistorial extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _EstadoCancelado extends StatelessWidget {
+  const _EstadoCancelado();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.grisFondo,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.rojo),
+      ),
+      child: const Text(
+        'Cancelado',
+        style: TextStyle(
+          color: AppColors.rojo,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

@@ -18,6 +18,8 @@ class ApiConfiguracionAdapter implements ConfiguracionRepository {
           'apertura': configuracion.apertura,
           'cierre': configuracion.cierre,
           'duracionBloqueMinutos': configuracion.duracionBloqueMinutos,
+          'pausaInicio': configuracion.pausaInicio,
+          'pausaFin': configuracion.pausaFin,
         },
       );
     } on ApiClientException catch (error) {
@@ -39,6 +41,8 @@ class ApiConfiguracionAdapter implements ConfiguracionRepository {
         apertura: response['apertura'] as String,
         cierre: response['cierre'] as String,
         duracionBloqueMinutos: response['duracionBloqueMinutos'] as int,
+        pausaInicio: response['pausaInicio'] as String?,
+        pausaFin: response['pausaFin'] as String?,
       );
     } on ApiClientException catch (error) {
       throw ConfiguracionFailureException(error.message);

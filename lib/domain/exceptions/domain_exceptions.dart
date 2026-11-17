@@ -41,6 +41,16 @@ class ServicioInvalidoException extends DomainException {
     : super("Servicio inválido: $message");
 }
 
+class BloqueoNotFoundException extends DomainException {
+  BloqueoNotFoundException(String id)
+    : super("No se encontró el bloqueo con el identificador: $id");
+}
+
+class BloqueoInvalidoException extends DomainException {
+  BloqueoInvalidoException(String message)
+    : super("Bloqueo inválido: $message");
+}
+
 class RemoteFailureException extends DomainException {
   RemoteFailureException(String message)
     : super("Error de comunicación con el servidor: $message");

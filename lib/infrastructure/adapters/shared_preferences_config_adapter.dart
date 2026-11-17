@@ -11,6 +11,8 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
   static const String _keyApertura = "cfg_apertura";
   static const String _keyCierre = "cfg_cierre";
   static const String _keyDuracion = "cfg_duracion_bloque";
+  static const String _keyPausaInicio = "cfg_pausa_inicio";
+  static const String _keyPausaFin = "cfg_pausa_fin";
   static const String _keyModoOscuro = "cfg_modo_oscuro";
 
   @override
@@ -19,6 +21,16 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
       await _prefs.setString(_keyApertura, configuracion.apertura);
       await _prefs.setString(_keyCierre, configuracion.cierre);
       await _prefs.setInt(_keyDuracion, configuracion.duracionBloqueMinutos);
+      if (configuracion.pausaInicio == null) {
+        await _prefs.remove(_keyPausaInicio);
+      } else {
+        await _prefs.setString(_keyPausaInicio, configuracion.pausaInicio!);
+      }
+      if (configuracion.pausaFin == null) {
+        await _prefs.remove(_keyPausaFin);
+      } else {
+        await _prefs.setString(_keyPausaFin, configuracion.pausaFin!);
+      }
     } catch (e) {
       throw ConfiguracionFailureException(
         "No se pudo guardar la configuración de horario: $e",
@@ -29,10 +41,16 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
   @override
   Future<ConfiguracionAgenda> getHorarioAtencion() async {
     try {
+      final pausaInicio = _prefs.getString(_keyPausaInicio);
+      final pausaFin = _prefs.getString(_keyPausaFin);
       return ConfiguracionAgenda(
         apertura: _prefs.getString(_keyApertura) ?? "09:00",
         cierre: _prefs.getString(_keyCierre) ?? "20:00",
         duracionBloqueMinutos: _prefs.getInt(_keyDuracion) ?? 30,
+        pausaInicio: (pausaInicio == null || pausaInicio.isEmpty)
+            ? null
+            : pausaInicio,
+        pausaFin: (pausaFin == null || pausaFin.isEmpty) ? null : pausaFin,
       );
     } catch (e) {
       throw ConfiguracionFailureException(

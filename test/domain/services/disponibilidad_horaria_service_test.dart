@@ -100,6 +100,43 @@ void main() {
       expect(horarios, contains('11:00'));
     });
 
+    test('omite los turnos que caen dentro de la pausa', () {
+      final horarios = service.calcularHorariosDisponibles(
+        fechaYMD: fecha,
+        configuracion: const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '12:00',
+          duracionBloqueMinutos: 30,
+          pausaInicio: '10:00',
+          pausaFin: '11:00',
+        ),
+        servicio: servicio30,
+        turnosDelDia: const [],
+        ahora: ahora,
+      );
+
+      expect(horarios, ['09:00', '09:30', '11:00', '11:30']);
+    });
+
+    test('rechaza una pausa fuera del horario de atención', () {
+      expect(
+        () => service.calcularHorariosDisponibles(
+          fechaYMD: fecha,
+          configuracion: const ConfiguracionAgenda(
+            apertura: '09:00',
+            cierre: '12:00',
+            duracionBloqueMinutos: 30,
+            pausaInicio: '08:00',
+            pausaFin: '10:00',
+          ),
+          servicio: servicio30,
+          turnosDelDia: const [],
+          ahora: ahora,
+        ),
+        throwsA(isA<ConfiguracionInvalidaException>()),
+      );
+    });
+
     test('retorna vacío para fechas pasadas', () {
       final horarios = service.calcularHorariosDisponibles(
         fechaYMD: '2029-01-15',

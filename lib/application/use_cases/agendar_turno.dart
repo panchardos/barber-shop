@@ -2,6 +2,7 @@ import '../../domain/entities/cliente.dart';
 import '../../domain/entities/servicio.dart';
 import '../../domain/entities/turno.dart';
 import '../../domain/exceptions/domain_exceptions.dart';
+import '../../domain/ports/bloqueo_repository.dart';
 import '../../domain/ports/configuracion_repository.dart';
 import '../../domain/ports/turno_repository.dart';
 import '../../domain/services/disponibilidad_horaria_service.dart';
@@ -10,14 +11,16 @@ class AgendarTurnoUseCase {
   final TurnoRepository _turnoRepository;
   final ConfiguracionRepository _configuracionRepository;
   final DisponibilidadHorariaService _disponibilidadService;
+  final BloqueoRepository? _bloqueoRepository;
 
   static int _secuencia = 0;
 
   AgendarTurnoUseCase(
     this._turnoRepository,
     this._configuracionRepository,
-    this._disponibilidadService,
-  );
+    this._disponibilidadService, [
+    this._bloqueoRepository,
+  ]);
 
   /// Ejecuta la acción de agendar un turno.
   /// Retorna el ID único del turno generado.
@@ -37,6 +40,8 @@ class AgendarTurnoUseCase {
 
     final configuracion = await _configuracionRepository.getHorarioAtencion();
     final turnosDelDia = await _turnoRepository.findByDate(fechaYMD);
+    final bloqueos =
+        await _bloqueoRepository?.findByDate(fechaYMD) ?? const [];
 
     final disponible = _disponibilidadService.estaDisponible(
       fechaYMD: fechaYMD,
@@ -44,6 +49,7 @@ class AgendarTurnoUseCase {
       configuracion: configuracion,
       servicio: servicioSeleccionado,
       turnosDelDia: turnosDelDia,
+      bloqueos: bloqueos,
     );
 
     if (!disponible) {

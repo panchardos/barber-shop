@@ -2,6 +2,7 @@ import 'package:barber_shop/injection_container.dart';
 import 'package:barber_shop/presentation/blocs/auth/auth_bloc.dart';
 import 'package:barber_shop/presentation/blocs/auth/auth_event.dart';
 import 'package:barber_shop/presentation/pages/agenda_admin_page.dart';
+import 'package:barber_shop/presentation/pages/bloqueos_admin_page.dart';
 import 'package:barber_shop/presentation/pages/configuracion_agenda_page.dart';
 import 'package:barber_shop/presentation/pages/historial_cliente_page.dart';
 import 'package:barber_shop/presentation/pages/reserva_cliente_page.dart';
@@ -89,6 +90,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('PARÁMETROS DEL LOCAL'), findsOneWidget);
+    expect(find.byTooltip('Configuración'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -97,6 +99,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HISTORIAL DE CLIENTE'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('la pantalla de bloqueos se construye', (tester) async {
+    await tester.pumpWidget(app(const BloqueosAdminPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('BLOQUEOS EXCEPCIONALES'), findsOneWidget);
+    expect(find.text('Nuevo bloqueo'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

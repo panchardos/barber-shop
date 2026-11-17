@@ -89,7 +89,7 @@ void main() {
       build: () {
         repository
           ..turnos.add(crearTurno())
-          ..failOnDelete = true;
+          ..failOnCancelar = true;
         return crearBloc();
       },
       seed: () => estadoCargado(turnos: [crearTurno()]),

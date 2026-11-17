@@ -96,18 +96,22 @@ void main() {
       expect(await nuevoAdapter.findByDate('2026-10-26'), hasLength(1));
     });
 
-    test('elimina un turno existente', () async {
+    test('cancela un turno y conserva el registro en el historial', () async {
       await adapter.save(crearTurno());
 
-      await adapter.delete('TRN-1');
+      await adapter.cancelar('TRN-1');
 
       expect(await adapter.findByDate('2026-10-26'), isEmpty);
       expect(await adapter.existsAtTime('2026-10-26', '10:30'), isFalse);
+
+      final historial = await adapter.findByClienteTelefono('2611234567');
+      expect(historial, hasLength(1));
+      expect(historial.single.estaCancelado, isTrue);
     });
 
-    test('informa cuando el turno a eliminar no existe', () async {
+    test('informa cuando el turno a cancelar no existe', () async {
       await expectLater(
-        adapter.delete('TRN-INEXISTENTE'),
+        adapter.cancelar('TRN-INEXISTENTE'),
         throwsA(isA<TurnoNotFoundException>()),
       );
     });
@@ -121,12 +125,12 @@ void main() {
       );
     });
 
-    test('traduce errores técnicos al eliminar', () async {
+    test('traduce errores técnicos al cancelar', () async {
       await adapter.save(crearTurno());
       await database.close();
 
       await expectLater(
-        adapter.delete('TRN-1'),
+        adapter.cancelar('TRN-1'),
         throwsA(isA<PersistenceFailureException>()),
       );
     });

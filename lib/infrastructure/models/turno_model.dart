@@ -1,6 +1,7 @@
-import '../../domain/entities/turno.dart';
 import '../../domain/entities/cliente.dart';
+import '../../domain/entities/estado_turno.dart';
 import '../../domain/entities/servicio.dart';
+import '../../domain/entities/turno.dart';
 
 class TurnoModel {
   final String id;
@@ -12,6 +13,7 @@ class TurnoModel {
   final double servicioPrecio;
   final String fechaYMD;
   final String hora;
+  final String estado;
 
   TurnoModel({
     required this.id,
@@ -23,6 +25,7 @@ class TurnoModel {
     required this.servicioPrecio,
     required this.fechaYMD,
     required this.hora,
+    this.estado = 'reservado',
   });
 
   /// Mapeo desde un Map devuelto por SQFlite (Fila de la BD)
@@ -37,6 +40,7 @@ class TurnoModel {
       servicioPrecio: (map['servicio_precio'] as num).toDouble(),
       fechaYMD: map['fecha_ymd'] as String,
       hora: map['hora'] as String,
+      estado: map['estado'] as String? ?? 'reservado',
     );
   }
 
@@ -57,6 +61,7 @@ class TurnoModel {
       'servicio_precio': servicioPrecio,
       'fecha_ymd': fechaYMD,
       'hora': hora,
+      'estado': estado,
     };
   }
 
@@ -78,6 +83,7 @@ class TurnoModel {
       ),
       fechaYMD: fechaYMD,
       hora: hora,
+      estado: EstadoTurno.fromValue(estado),
     );
   }
 
@@ -93,6 +99,7 @@ class TurnoModel {
       servicioPrecio: turno.servicio.precio,
       fechaYMD: turno.fechaYMD,
       hora: turno.hora,
+      estado: turno.estado.value,
     );
   }
 }

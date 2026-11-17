@@ -9,6 +9,6 @@ class CancelarTurnoUseCase {
     if (idTurno.trim().isEmpty) {
       throw Exception("El ID del turno es inválido.");
     }
-    await _turnoRepository.delete(idTurno);
+    await _turnoRepository.cancelar(idTurno);
   }
 }

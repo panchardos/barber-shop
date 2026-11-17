@@ -1,5 +1,6 @@
 import 'package:barber_shop/application/use_cases/cancelar_turno.dart';
 import 'package:barber_shop/domain/entities/cliente.dart';
+import 'package:barber_shop/domain/entities/estado_turno.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
@@ -30,10 +31,11 @@ void main() {
       useCase = CancelarTurnoUseCase(repository);
     });
 
-    test('cancela un turno existente', () async {
+    test('cancela un turno existente sin borrar el registro', () async {
       await useCase.execute(turno.id);
 
-      expect(repository.turnos, isEmpty);
+      expect(repository.turnos, hasLength(1));
+      expect(repository.turnos.single.estado, EstadoTurno.cancelado);
     });
 
     test('rechaza un identificador vacío', () async {
@@ -49,7 +51,7 @@ void main() {
     });
 
     test('propaga errores de persistencia', () async {
-      repository.failOnDelete = true;
+      repository.failOnCancelar = true;
 
       await expectLater(
         useCase.execute(turno.id),

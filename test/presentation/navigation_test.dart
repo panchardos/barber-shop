@@ -4,6 +4,7 @@ import 'package:barber_shop/presentation/blocs/auth/auth_bloc.dart';
 import 'package:barber_shop/presentation/blocs/auth/auth_event.dart';
 import 'package:barber_shop/presentation/pages/admin_gate.dart';
 import 'package:barber_shop/presentation/pages/agenda_admin_page.dart';
+import 'package:barber_shop/presentation/pages/bloqueos_admin_page.dart';
 import 'package:barber_shop/presentation/pages/configuracion_agenda_page.dart';
 import 'package:barber_shop/presentation/pages/historial_cliente_page.dart';
 import 'package:barber_shop/presentation/pages/reserva_cliente_page.dart';
@@ -45,6 +46,8 @@ void main() {
               const AdminGate(child: ConfiguracionAgendaPage()),
           AppRoutes.adminHistorial: (_) =>
               const AdminGate(child: HistorialClientePage()),
+          AppRoutes.adminBloqueos: (_) =>
+              const AdminGate(child: BloqueosAdminPage()),
         },
       ),
     );

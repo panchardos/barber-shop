@@ -6,7 +6,7 @@ import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
 import '../theme/app_theme.dart';
 
-enum AdminSection { agenda, servicios, configuracion, historial }
+enum AdminSection { agenda, servicios, configuracion, historial, bloqueos }
 
 class AdminScaffold extends StatelessWidget {
   final AdminSection selected;
@@ -33,16 +33,17 @@ class AdminScaffold extends StatelessWidget {
         ),
         title: const Text('Panel Control'),
         actions: [
-          IconButton(
-            tooltip: 'Configuración',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              Navigator.pushReplacementNamed(
-                context,
-                AppRoutes.adminConfiguracion,
-              );
-            },
-          ),
+          if (selected != AdminSection.configuracion)
+            IconButton(
+              tooltip: 'Configuración',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () {
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRoutes.adminConfiguracion,
+                );
+              },
+            ),
           const SizedBox(width: 4),
         ],
       ),
@@ -113,6 +114,12 @@ class _AdminDrawer extends StatelessWidget {
               selected: selected == AdminSection.historial,
               onTap: () => _navegar(context, AdminSection.historial),
             ),
+            _DrawerItem(
+              icon: Icons.block_outlined,
+              label: 'Bloqueos',
+              selected: selected == AdminSection.bloqueos,
+              onTap: () => _navegar(context, AdminSection.bloqueos),
+            ),
             const Spacer(),
             const Divider(),
             ListTile(
@@ -151,6 +158,7 @@ class _AdminDrawer extends StatelessWidget {
       AdminSection.servicios => AppRoutes.adminServicios,
       AdminSection.configuracion => AppRoutes.adminConfiguracion,
       AdminSection.historial => AppRoutes.adminHistorial,
+      AdminSection.bloqueos => AppRoutes.adminBloqueos,
     };
     navigator.pop();
     navigator.pushReplacementNamed(route);

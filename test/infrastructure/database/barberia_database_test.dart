@@ -23,13 +23,13 @@ void main() {
       );
       final nombres = tablas.map((fila) => fila['name']).toList();
 
-      expect(nombres, containsAll(<String>['turnos', 'servicios']));
+      expect(nombres, containsAll(<String>['turnos', 'servicios', 'bloqueos']));
 
       final servicios = await database.query('servicios');
       expect(servicios, hasLength(4));
     });
 
-    test('migra de versión 1 a 2 conservando los turnos', () async {
+    test('migra de versión 1 a 4 conservando los turnos', () async {
       final directorio = await Directory.systemTemp.createTemp(
         'barberia_database_test_',
       );
@@ -84,10 +84,13 @@ void main() {
 
       final turnos = await version2.query('turnos');
       final servicios = await version2.query('servicios');
+      final bloqueos = await version2.query('bloqueos');
 
       expect(turnos, hasLength(1));
       expect(turnos.single['id'], 'TRN-LEGACY');
+      expect(turnos.single['estado'], 'reservado');
       expect(servicios, hasLength(4));
+      expect(bloqueos, isEmpty);
     });
   });
 }

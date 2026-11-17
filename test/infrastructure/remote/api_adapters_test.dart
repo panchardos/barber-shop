@@ -5,6 +5,7 @@ import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/entities/turno.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
 import 'package:barber_shop/infrastructure/remote/api_auth_adapter.dart';
+import 'package:barber_shop/infrastructure/remote/api_bloqueo_adapter.dart';
 import 'package:barber_shop/infrastructure/remote/api_client.dart';
 import 'package:barber_shop/infrastructure/remote/api_configuracion_adapter.dart';
 import 'package:barber_shop/infrastructure/remote/api_servicio_adapter.dart';
@@ -195,6 +196,43 @@ void main() {
       api.close();
     });
 
+    test('parsea y envía bloqueos', () async {
+      final mock = MockClient((request) async {
+        if (request.method == 'GET') {
+          return http.Response(
+            jsonEncode([
+              {
+                'id': 'BLQ-1',
+                'fechaYMD': '2030-01-15',
+                'todoElDia': false,
+                'horaInicio': '10:00',
+                'horaFin': '11:00',
+                'motivo': 'Trámite',
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('{}', 200);
+      });
+      final api = ApiClient(
+        baseUrl: Uri.parse('http://demo.test'),
+        session: session,
+        client: mock,
+      );
+      final adapter = ApiBloqueoAdapter(api);
+
+      final bloqueos = await adapter.findByDate('2030-01-15');
+      expect(bloqueos.single.id, 'BLQ-1');
+      expect(bloqueos.single.horaInicio, '10:00');
+      expect(bloqueos.single.motivo, 'Trámite');
+
+      await adapter.save(bloqueos.single);
+      await adapter.delete('BLQ-1');
+      api.close();
+    });
+
     test('parsea servicios y configuración', () async {
       final mock = MockClient((request) async {
         if (request.url.path == '/api/services') {
@@ -216,6 +254,8 @@ void main() {
             'apertura': '09:00',
             'cierre': '20:00',
             'duracionBloqueMinutos': 30,
+            'pausaInicio': '13:00',
+            'pausaFin': '14:00',
           }),
           200,
           headers: {'content-type': 'application/json'},
@@ -231,6 +271,8 @@ void main() {
 
       expect(servicios.single.nombre, 'Corte');
       expect(config.apertura, '09:00');
+      expect(config.pausaInicio, '13:00');
+      expect(config.pausaFin, '14:00');
       api.close();
     });
   });

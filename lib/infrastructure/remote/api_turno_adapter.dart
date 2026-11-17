@@ -1,4 +1,5 @@
 import '../../domain/entities/cliente.dart';
+import '../../domain/entities/estado_turno.dart';
 import '../../domain/entities/servicio.dart';
 import '../../domain/entities/turno.dart';
 import '../../domain/exceptions/domain_exceptions.dart';
@@ -81,7 +82,7 @@ class ApiTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  Future<void> delete(String id) async {
+  Future<void> cancelar(String id) async {
     try {
       await _client.delete('/api/appointments/$id');
     } on ApiClientException catch (error) {
@@ -131,6 +132,7 @@ class ApiTurnoAdapter implements TurnoRepository {
       ),
       fechaYMD: json['fechaYMD'] as String,
       hora: json['hora'] as String,
+      estado: EstadoTurno.fromValue(json['estado'] as String?),
     );
   }
 }

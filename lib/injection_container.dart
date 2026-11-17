@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 // Puertos (Dominio)
 import 'domain/ports/auth_repository.dart';
+import 'domain/ports/bloqueo_repository.dart';
 import 'domain/ports/configuracion_repository.dart';
 import 'domain/ports/servicio_repository.dart';
 import 'domain/ports/turno_repository.dart';
@@ -12,14 +13,17 @@ import 'domain/services/disponibilidad_horaria_service.dart';
 
 // Adaptadores (Infraestructura)
 import 'infrastructure/adapters/allow_all_auth_adapter.dart';
+import 'infrastructure/adapters/in_memory_bloqueo_adapter.dart';
 import 'infrastructure/adapters/in_memory_configuracion_adapter.dart';
 import 'infrastructure/adapters/in_memory_servicio_adapter.dart';
 import 'infrastructure/adapters/in_memory_turno_adapter.dart';
 import 'infrastructure/adapters/shared_preferences_config_adapter.dart';
+import 'infrastructure/adapters/sqflite_bloqueo_adapter.dart';
 import 'infrastructure/adapters/sqflite_servicio_adapter.dart';
 import 'infrastructure/adapters/sqflite_turno_adapter.dart';
 import 'infrastructure/database/barberia_database.dart';
 import 'infrastructure/remote/api_auth_adapter.dart';
+import 'infrastructure/remote/api_bloqueo_adapter.dart';
 import 'infrastructure/remote/api_client.dart';
 import 'infrastructure/remote/api_configuracion_adapter.dart';
 import 'infrastructure/remote/api_servicio_adapter.dart';
@@ -32,8 +36,11 @@ import 'application/use_cases/agendar_turno.dart';
 import 'application/use_cases/cancelar_turno.dart';
 import 'application/use_cases/cerrar_sesion_admin.dart';
 import 'application/use_cases/configurar_agenda.dart';
+import 'application/use_cases/crear_bloqueo.dart';
 import 'application/use_cases/crear_servicio.dart';
+import 'application/use_cases/eliminar_bloqueo.dart';
 import 'application/use_cases/iniciar_sesion_admin.dart';
+import 'application/use_cases/obtener_bloqueos_por_dia.dart';
 import 'application/use_cases/obtener_catalogo_servicios.dart';
 import 'application/use_cases/obtener_historial_cliente.dart';
 import 'application/use_cases/obtener_horarios_disponibles.dart';
@@ -44,6 +51,7 @@ import 'application/use_cases/verificar_sesion_admin.dart';
 // BLoCs (Presentación)
 import 'presentation/blocs/agenda_admin/agenda_admin_bloc.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
+import 'presentation/blocs/bloqueos_admin/bloqueos_admin_bloc.dart';
 import 'presentation/blocs/configuracion_agenda/configuracion_agenda_bloc.dart';
 import 'presentation/blocs/historial_cliente/historial_cliente_bloc.dart';
 import 'presentation/blocs/reserva/reserva_bloc.dart';
@@ -91,6 +99,8 @@ Future<void> _registerLocalAdapters() async {
   await servicioAdapter.init();
   getIt.registerSingleton<ServicioRepository>(servicioAdapter);
 
+  getIt.registerSingleton<BloqueoRepository>(SqfliteBloqueoAdapter(database));
+
   getIt.registerSingleton<ConfiguracionRepository>(
     SharedPreferencesConfigAdapter(sharedPreferences),
   );
@@ -101,6 +111,7 @@ Future<void> _registerLocalAdapters() async {
 void _registerMemoryAdapters() {
   getIt.registerSingleton<TurnoRepository>(InMemoryTurnoAdapter());
   getIt.registerSingleton<ServicioRepository>(InMemoryServicioAdapter());
+  getIt.registerSingleton<BloqueoRepository>(InMemoryBloqueoAdapter());
   getIt.registerSingleton<ConfiguracionRepository>(
     InMemoryConfiguracionAdapter(),
   );
@@ -122,6 +133,9 @@ Future<void> _registerRemoteAdapters() async {
   );
   getIt.registerLazySingleton<TurnoRepository>(
     () => ApiTurnoAdapter(apiClient, session),
+  );
+  getIt.registerLazySingleton<BloqueoRepository>(
+    () => ApiBloqueoAdapter(apiClient),
   );
   getIt.registerLazySingleton<ConfiguracionRepository>(
     () => ApiConfiguracionAdapter(apiClient),
@@ -154,6 +168,7 @@ void _registerUseCases() {
       getIt<TurnoRepository>(),
       getIt<ConfiguracionRepository>(),
       getIt<DisponibilidadHorariaService>(),
+      getIt<BloqueoRepository>(),
     ),
   );
 
@@ -178,6 +193,7 @@ void _registerUseCases() {
       getIt<TurnoRepository>(),
       getIt<ConfiguracionRepository>(),
       getIt<DisponibilidadHorariaService>(),
+      getIt<BloqueoRepository>(),
     ),
   );
 
@@ -186,6 +202,7 @@ void _registerUseCases() {
       getIt<TurnoRepository>(),
       getIt<ConfiguracionRepository>(),
       getIt<DisponibilidadHorariaService>(),
+      getIt<BloqueoRepository>(),
     ),
   );
 
@@ -199,6 +216,16 @@ void _registerUseCases() {
 
   getIt.registerLazySingleton<CrearServicioUseCase>(
     () => CrearServicioUseCase(getIt<ServicioRepository>()),
+  );
+
+  getIt.registerLazySingleton<CrearBloqueoUseCase>(
+    () => CrearBloqueoUseCase(getIt<BloqueoRepository>()),
+  );
+  getIt.registerLazySingleton<EliminarBloqueoUseCase>(
+    () => EliminarBloqueoUseCase(getIt<BloqueoRepository>()),
+  );
+  getIt.registerLazySingleton<ObtenerBloqueosPorDiaUseCase>(
+    () => ObtenerBloqueosPorDiaUseCase(getIt<BloqueoRepository>()),
   );
 }
 
@@ -244,6 +271,14 @@ void _registerBlocs() {
 
   getIt.registerFactory<HistorialClienteBloc>(
     () => HistorialClienteBloc(getIt<ObtenerHistorialClienteUseCase>()),
+  );
+
+  getIt.registerFactory<BloqueosAdminBloc>(
+    () => BloqueosAdminBloc(
+      getIt<ObtenerBloqueosPorDiaUseCase>(),
+      getIt<CrearBloqueoUseCase>(),
+      getIt<EliminarBloqueoUseCase>(),
+    ),
   );
 
   getIt.registerFactory<AuthBloc>(

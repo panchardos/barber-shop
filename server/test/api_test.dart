@@ -189,6 +189,14 @@ void main() {
 
     final occupiedAfter = await get('/api/ocupados?fecha=$fecha');
     expect(jsonDecode(occupiedAfter.body), isEmpty);
+
+    final historyAfter = await get(
+      '/api/appointments?telefono=2611234567',
+      token: token,
+    );
+    final historyAfterJson = jsonDecode(historyAfter.body) as List<dynamic>;
+    expect(historyAfterJson, hasLength(1));
+    expect(historyAfterJson.first['estado'], 'cancelado');
   });
 
   test('crear y actualizar servicio', () async {
@@ -227,6 +235,8 @@ void main() {
       'apertura': '10:00',
       'cierre': '18:00',
       'duracionBloqueMinutos': 45,
+      'pausaInicio': '13:00',
+      'pausaFin': '14:00',
     }, token: token);
     expect(updated.statusCode, 200);
 
@@ -234,6 +244,50 @@ void main() {
     final json = jsonDecode(config.body) as Map<String, dynamic>;
     expect(json['apertura'], '10:00');
     expect(json['duracionBloqueMinutos'], 45);
+    expect(json['pausaInicio'], '13:00');
+    expect(json['pausaFin'], '14:00');
+  });
+
+  test('bloqueos: crear, listar, bloquear reserva y eliminar', () async {
+    final token = await login();
+
+    final unauthorized = await post('/api/bloqueos', {
+      'fechaYMD': '2030-01-15',
+      'todoElDia': true,
+    });
+    expect(unauthorized.statusCode, 401);
+
+    final created = await post('/api/bloqueos', {
+      'id': 'BLQ-TEST',
+      'fechaYMD': '2030-01-15',
+      'todoElDia': false,
+      'horaInicio': '10:00',
+      'horaFin': '11:00',
+      'motivo': 'Trámite',
+    }, token: token);
+    expect(created.statusCode, 201);
+
+    final bloqueos = await get('/api/bloqueos?fecha=2030-01-15');
+    expect(bloqueos.statusCode, 200);
+    final bloqueosJson = jsonDecode(bloqueos.body) as List<dynamic>;
+    expect(bloqueosJson, hasLength(1));
+    expect(bloqueosJson.first['motivo'], 'Trámite');
+
+    final appointment = await post('/api/appointments', {
+      'id': 'TRN-BLOQUEADO',
+      'clienteNombre': 'Ana Pérez',
+      'clienteTelefono': '2611234567',
+      'servicioId': '1',
+      'fechaYMD': '2030-01-15',
+      'hora': '10:00',
+    });
+    expect(appointment.statusCode, 409);
+
+    final deleted = await delete('/api/bloqueos/BLQ-TEST', token: token);
+    expect(deleted.statusCode, 200);
+
+    final bloqueosDespues = await get('/api/bloqueos?fecha=2030-01-15');
+    expect(jsonDecode(bloqueosDespues.body), isEmpty);
   });
 
   test('reset de demo protegido', () async {

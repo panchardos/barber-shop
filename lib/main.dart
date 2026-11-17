@@ -9,6 +9,7 @@ import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/auth/auth_event.dart';
 import 'presentation/pages/admin_gate.dart';
 import 'presentation/pages/agenda_admin_page.dart';
+import 'presentation/pages/bloqueos_admin_page.dart';
 import 'presentation/pages/configuracion_agenda_page.dart';
 import 'presentation/pages/historial_cliente_page.dart';
 import 'presentation/pages/reserva_cliente_page.dart';
@@ -54,6 +55,8 @@ class BarberiaApp extends StatelessWidget {
             const AdminGate(child: ConfiguracionAgendaPage()),
         AppRoutes.adminHistorial: (_) =>
             const AdminGate(child: HistorialClientePage()),
+        AppRoutes.adminBloqueos: (_) =>
+            const AdminGate(child: BloqueosAdminPage()),
       },
     );
   }

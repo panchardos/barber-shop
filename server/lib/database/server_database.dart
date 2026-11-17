@@ -23,10 +23,19 @@ class ServerDatabase {
     final database = await dbFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 3,
         onCreate: (db, version) async {
           await _createSchema(db);
           await _seed(db);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await db.execute('ALTER TABLE config ADD COLUMN pausa_inicio TEXT');
+            await db.execute('ALTER TABLE config ADD COLUMN pausa_fin TEXT');
+          }
+          if (oldVersion < 3) {
+            await _createBloqueosTable(db);
+          }
         },
       ),
     );
@@ -66,6 +75,8 @@ class ServerDatabase {
         apertura TEXT NOT NULL,
         cierre TEXT NOT NULL,
         duracion_bloque_minutos INTEGER NOT NULL,
+        pausa_inicio TEXT,
+        pausa_fin TEXT,
         updated_at TEXT NOT NULL
       )
     ''');
@@ -91,6 +102,22 @@ class ServerDatabase {
       CREATE UNIQUE INDEX idx_appointments_activos
       ON appointments (fecha_ymd, hora)
       WHERE estado = 'reservado'
+    ''');
+
+    await _createBloqueosTable(db);
+  }
+
+  static Future<void> _createBloqueosTable(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE bloqueos (
+        id TEXT PRIMARY KEY,
+        fecha_ymd TEXT NOT NULL,
+        todo_el_dia INTEGER NOT NULL DEFAULT 0,
+        hora_inicio TEXT,
+        hora_fin TEXT,
+        motivo TEXT,
+        created_at TEXT NOT NULL
+      )
     ''');
   }
 
@@ -120,6 +147,8 @@ class ServerDatabase {
       'apertura': '09:00',
       'cierre': '20:00',
       'duracion_bloque_minutos': 30,
+      'pausa_inicio': null,
+      'pausa_fin': null,
       'updated_at': now,
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
@@ -180,11 +209,15 @@ class ServerDatabase {
     required String apertura,
     required String cierre,
     required int duracionBloqueMinutos,
+    String? pausaInicio,
+    String? pausaFin,
   }) async {
     final count = await _db.update('config', {
       'apertura': apertura,
       'cierre': cierre,
       'duracion_bloque_minutos': duracionBloqueMinutos,
+      'pausa_inicio': pausaInicio,
+      'pausa_fin': pausaFin,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }, where: 'id = 1');
 
@@ -194,6 +227,8 @@ class ServerDatabase {
         'apertura': apertura,
         'cierre': cierre,
         'duracion_bloque_minutos': duracionBloqueMinutos,
+        'pausa_inicio': pausaInicio,
+        'pausa_fin': pausaFin,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
     }
@@ -220,7 +255,7 @@ class ServerDatabase {
   Future<List<Map<String, dynamic>>> appointmentsByPhone(String telefono) {
     return _db.query(
       'appointments',
-      where: "cliente_telefono = ? AND estado = 'reservado'",
+      where: 'cliente_telefono = ?',
       whereArgs: [telefono],
       orderBy: 'fecha_ymd DESC, hora DESC',
     );
@@ -276,9 +311,47 @@ class ServerDatabase {
     return count > 0;
   }
 
+  Future<List<Map<String, dynamic>>> listBloqueos(String fechaYMD) {
+    return _db.query(
+      'bloqueos',
+      where: 'fecha_ymd = ?',
+      whereArgs: [fechaYMD],
+      orderBy: 'todo_el_dia DESC, hora_inicio ASC',
+    );
+  }
+
+  Future<void> insertBloqueo({
+    required String id,
+    required String fechaYMD,
+    required bool todoElDia,
+    String? horaInicio,
+    String? horaFin,
+    String? motivo,
+  }) async {
+    await _db.insert('bloqueos', {
+      'id': id,
+      'fecha_ymd': fechaYMD,
+      'todo_el_dia': todoElDia ? 1 : 0,
+      'hora_inicio': horaInicio,
+      'hora_fin': horaFin,
+      'motivo': motivo,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
+  Future<bool> deleteBloqueo(String id) async {
+    final count = await _db.delete(
+      'bloqueos',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return count > 0;
+  }
+
   Future<void> resetDemo() async {
     await _db.transaction((txn) async {
       await txn.delete('appointments');
+      await txn.delete('bloqueos');
       await txn.delete('services');
       await txn.delete('config');
       await _seed(txn);

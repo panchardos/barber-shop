@@ -39,6 +39,49 @@ void main() {
       expect(configuracion.apertura, '08:30');
       expect(configuracion.cierre, '19:00');
       expect(configuracion.duracionBloqueMinutos, 45);
+      expect(configuracion.pausaInicio, isNull);
+      expect(configuracion.pausaFin, isNull);
+    });
+
+    test('guarda y recupera la pausa', () async {
+      await adapter.saveHorarioAtencion(
+        const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '20:00',
+          duracionBloqueMinutos: 30,
+          pausaInicio: '13:00',
+          pausaFin: '14:00',
+        ),
+      );
+
+      final configuracion = await adapter.getHorarioAtencion();
+
+      expect(configuracion.pausaInicio, '13:00');
+      expect(configuracion.pausaFin, '14:00');
+    });
+
+    test('limpia la pausa al guardar una configuración sin pausa', () async {
+      await adapter.saveHorarioAtencion(
+        const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '20:00',
+          duracionBloqueMinutos: 30,
+          pausaInicio: '13:00',
+          pausaFin: '14:00',
+        ),
+      );
+      await adapter.saveHorarioAtencion(
+        const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '20:00',
+          duracionBloqueMinutos: 30,
+        ),
+      );
+
+      final configuracion = await adapter.getHorarioAtencion();
+
+      expect(configuracion.pausaInicio, isNull);
+      expect(configuracion.pausaFin, isNull);
     });
 
     test('guarda y recupera la preferencia de modo oscuro', () async {

@@ -36,7 +36,11 @@ class ServerApi {
     router.get('/api/services', _listServices);
     router.get('/api/config', _getConfig);
     router.get('/api/ocupados', _occupied);
+    router.get('/api/bloqueos', _listBloqueos);
     router.post('/api/appointments', _createAppointment);
+
+    router.post('/api/bloqueos', _createBloqueo);
+    router.delete('/api/bloqueos/<id>', _deleteBloqueo);
 
     router.get('/api/appointments', _listAppointments);
     router.delete('/api/appointments/<id>', _cancelAppointment);
@@ -148,17 +152,23 @@ class ServerApi {
     final apertura = _requiredString(body, 'apertura');
     final cierre = _requiredString(body, 'cierre');
     final duracion = _requiredInt(body, 'duracionBloqueMinutos');
+    final pausaInicio = _optionalString(body, 'pausaInicio');
+    final pausaFin = _optionalString(body, 'pausaFin');
 
     ServerAvailability.validateConfig(
       apertura: apertura,
       cierre: cierre,
       duracionBloqueMinutos: duracion,
+      pausaInicio: pausaInicio,
+      pausaFin: pausaFin,
     );
 
     await db.updateConfig(
       apertura: apertura,
       cierre: cierre,
       duracionBloqueMinutos: duracion,
+      pausaInicio: pausaInicio,
+      pausaFin: pausaFin,
     );
 
     final config = await db.getConfig();
@@ -181,6 +191,68 @@ class ServerApi {
     );
   }
 
+  Future<Response> _listBloqueos(Request request) async {
+    final fecha = request.url.queryParameters['fecha']?.trim() ?? '';
+    _validarFecha(fecha);
+    final rows = await db.listBloqueos(fecha);
+    return jsonResponse(rows.map(_bloqueoJson).toList());
+  }
+
+  Future<Response> _createBloqueo(Request request) async {
+    final unauthorized = _authError(request);
+    if (unauthorized != null) return unauthorized;
+
+    final body = await readJson(request);
+    final fechaYMD = _requiredString(body, 'fechaYMD');
+    _validarFecha(fechaYMD);
+    final todoElDia = _boolOrDefault(body, 'todoElDia');
+
+    String? horaInicio;
+    String? horaFin;
+    if (!todoElDia) {
+      horaInicio = _requiredString(body, 'horaInicio');
+      horaFin = _requiredString(body, 'horaFin');
+      _validarHora(horaInicio);
+      _validarHora(horaFin);
+      if (horaInicio.compareTo(horaFin) >= 0) {
+        throw const ApiException(
+          400,
+          'El bloqueo debe comenzar antes de terminar.',
+        );
+      }
+    }
+
+    final idBody = (body['id'] as String?)?.trim();
+    final id = idBody == null || idBody.isEmpty
+        ? 'BLQ-${DateTime.now().microsecondsSinceEpoch}'
+        : idBody;
+
+    await db.insertBloqueo(
+      id: id,
+      fechaYMD: fechaYMD,
+      todoElDia: todoElDia,
+      horaInicio: horaInicio,
+      horaFin: horaFin,
+      motivo: _optionalString(body, 'motivo'),
+    );
+
+    final row = (await db.listBloqueos(fechaYMD)).firstWhere(
+      (item) => item['id'] == id,
+    );
+    return jsonResponse(_bloqueoJson(row), status: 201);
+  }
+
+  Future<Response> _deleteBloqueo(Request request, String id) async {
+    final unauthorized = _authError(request);
+    if (unauthorized != null) return unauthorized;
+
+    final deleted = await db.deleteBloqueo(id);
+    if (!deleted) {
+      return errorResponse(404, 'Bloqueo no encontrado.');
+    }
+    return jsonResponse({'ok': true});
+  }
+
   Future<Response> _createAppointment(Request request) async {
     final body = await readJson(request);
 
@@ -199,12 +271,14 @@ class ServerApi {
 
     final config = await db.getConfig();
     final occupied = await db.occupiedByDate(fechaYMD);
+    final bloqueos = await db.listBloqueos(fechaYMD);
     final disponible = ServerAvailability.isAvailable(
       fechaYMD: fechaYMD,
       hora: hora,
       config: config,
       service: service,
       occupied: occupied,
+      bloqueos: bloqueos,
     );
 
     if (!disponible) {
@@ -292,6 +366,19 @@ class ServerApi {
       'apertura': row['apertura'],
       'cierre': row['cierre'],
       'duracionBloqueMinutos': row['duracion_bloque_minutos'],
+      'pausaInicio': row['pausa_inicio'],
+      'pausaFin': row['pausa_fin'],
+    };
+  }
+
+  Map<String, dynamic> _bloqueoJson(Map<String, dynamic> row) {
+    return {
+      'id': row['id'],
+      'fechaYMD': row['fecha_ymd'],
+      'todoElDia': (row['todo_el_dia'] as int? ?? 0) == 1,
+      'horaInicio': row['hora_inicio'],
+      'horaFin': row['hora_fin'],
+      'motivo': row['motivo'],
     };
   }
 
@@ -316,6 +403,23 @@ class ServerApi {
       throw ApiException(400, 'El campo $key es obligatorio.');
     }
     return value.trim();
+  }
+
+  String? _optionalString(Map<String, dynamic> body, String key) {
+    final value = body[key];
+    if (value == null) return null;
+    if (value is! String) {
+      throw ApiException(400, 'El campo $key debe ser texto.');
+    }
+    final texto = value.trim();
+    return texto.isEmpty ? null : texto;
+  }
+
+  bool _boolOrDefault(Map<String, dynamic> body, String key) {
+    final value = body[key];
+    if (value == null) return false;
+    if (value is bool) return value;
+    throw ApiException(400, 'El campo $key debe ser booleano.');
   }
 
   int _requiredInt(Map<String, dynamic> body, String key) {

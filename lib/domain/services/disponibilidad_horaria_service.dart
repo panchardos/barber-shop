@@ -1,3 +1,4 @@
+import '../entities/bloqueo.dart';
 import '../entities/configuracion_agenda.dart';
 import '../entities/servicio.dart';
 import '../entities/turno.dart';
@@ -11,6 +12,7 @@ class DisponibilidadHorariaService {
     required ConfiguracionAgenda configuracion,
     required Servicio servicio,
     required List<Turno> turnosDelDia,
+    List<Bloqueo> bloqueos = const [],
     DateTime? ahora,
   }) {
     final apertura = _parseHora(configuracion.apertura);
@@ -37,6 +39,15 @@ class DisponibilidadHorariaService {
       );
     }
 
+    final pausa = _resolverPausa(configuracion, apertura, cierre);
+
+    final bloqueosDelDia = bloqueos
+        .where((bloqueo) => bloqueo.fechaYMD == fechaYMD)
+        .toList();
+    if (bloqueosDelDia.any((bloqueo) => bloqueo.todoElDia)) {
+      return const [];
+    }
+
     final momentoActual = ahora ?? DateTime.now();
     final fechaActual = _formatearFecha(momentoActual);
 
@@ -47,6 +58,21 @@ class DisponibilidadHorariaService {
     final esHoy = fechaYMD == fechaActual;
     final minutosActuales = momentoActual.hour * 60 + momentoActual.minute;
     final rangosOcupados = <_Rango>[];
+    if (pausa != null) {
+      rangosOcupados.add(pausa);
+    }
+
+    for (final bloqueo in bloqueosDelDia) {
+      if (bloqueo.todoElDia) continue;
+      final inicio = _parseHora(bloqueo.horaInicio ?? '');
+      final fin = _parseHora(bloqueo.horaFin ?? '');
+      if (inicio == null || fin == null || inicio >= fin) {
+        throw BloqueoInvalidoException(
+          'El bloqueo ${bloqueo.id} tiene un rango horario inválido.',
+        );
+      }
+      rangosOcupados.add(_Rango(inicio, fin));
+    }
 
     for (final turno in turnosDelDia) {
       final inicio = _parseHora(turno.hora);
@@ -86,6 +112,7 @@ class DisponibilidadHorariaService {
     required ConfiguracionAgenda configuracion,
     required Servicio servicio,
     required List<Turno> turnosDelDia,
+    List<Bloqueo> bloqueos = const [],
     DateTime? ahora,
   }) {
     final horarios = calcularHorariosDisponibles(
@@ -93,9 +120,42 @@ class DisponibilidadHorariaService {
       configuracion: configuracion,
       servicio: servicio,
       turnosDelDia: turnosDelDia,
+      bloqueos: bloqueos,
       ahora: ahora,
     );
     return horarios.contains(hora);
+  }
+
+  _Rango? _resolverPausa(
+    ConfiguracionAgenda configuracion,
+    int apertura,
+    int cierre,
+  ) {
+    final inicioConfig = configuracion.pausaInicio;
+    final finConfig = configuracion.pausaFin;
+    if (inicioConfig == null && finConfig == null) {
+      return null;
+    }
+
+    final inicio = inicioConfig == null ? null : _parseHora(inicioConfig);
+    final fin = finConfig == null ? null : _parseHora(finConfig);
+    if (inicio == null || fin == null) {
+      throw ConfiguracionInvalidaException(
+        'La pausa debe tener horas válidas en formato HH:MM.',
+      );
+    }
+    if (inicio >= fin) {
+      throw ConfiguracionInvalidaException(
+        'La pausa debe comenzar antes de terminar.',
+      );
+    }
+    if (inicio < apertura || fin > cierre) {
+      throw ConfiguracionInvalidaException(
+        'La pausa debe estar dentro del horario de atención.',
+      );
+    }
+
+    return _Rango(inicio, fin);
   }
 
   int? _parseHora(String hora) {
