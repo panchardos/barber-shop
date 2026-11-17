@@ -162,7 +162,7 @@ Las pruebas cubren:
 - Adaptadores remotos HTTP y autenticación de administrador.
 - Cancelación con estado persistido, bloqueos excepcionales y pausa diaria.
 
-Actualmente la suite contiene **139 tests de Flutter** y **23 tests del
+Actualmente la suite contiene **136 tests de Flutter** y **23 tests del
 backend**.
 
 La base SQLite se prueba con `sqflite_common_ffi`, incluido como dependencia de desarrollo.

@@ -64,11 +64,12 @@ void main() {
       expect(turnos.single.cliente.telefono, turno.cliente.telefono);
     });
 
-    test('detecta un horario ocupado', () async {
+    test('detecta un horario ocupado en la agenda del día', () async {
       await adapter.save(crearTurno());
 
-      expect(await adapter.existsAtTime('2026-10-26', '10:30'), isTrue);
-      expect(await adapter.existsAtTime('2026-10-26', '11:00'), isFalse);
+      final turnos = await adapter.findByDate('2026-10-26');
+      expect(turnos, hasLength(1));
+      expect(turnos.single.hora, '10:30');
     });
 
     test('ordena el historial por fecha y hora descendente', () async {
@@ -102,7 +103,6 @@ void main() {
       await adapter.cancelar('TRN-1');
 
       expect(await adapter.findByDate('2026-10-26'), isEmpty);
-      expect(await adapter.existsAtTime('2026-10-26', '10:30'), isFalse);
 
       final historial = await adapter.findByClienteTelefono('2611234567');
       expect(historial, hasLength(1));

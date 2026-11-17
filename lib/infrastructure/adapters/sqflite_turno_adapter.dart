@@ -63,16 +63,6 @@ class SqfliteTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  Future<bool> existsAtTime(String fechaYMD, String hora) async {
-    return _cache.any(
-      (t) =>
-          t.fechaYMD == fechaYMD &&
-          t.hora == hora &&
-          t.estado == EstadoTurno.reservado,
-    );
-  }
-
-  @override
   Future<void> cancelar(String id) async {
     final index = _cache.indexWhere((t) => t.id == id);
     if (index < 0) {

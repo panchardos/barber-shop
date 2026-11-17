@@ -7,7 +7,6 @@ import 'package:barber_shop/application/use_cases/obtener_catalogo_servicios.dar
 import 'package:barber_shop/application/use_cases/obtener_historial_cliente.dart';
 import 'package:barber_shop/application/use_cases/obtener_horarios_disponibles.dart';
 import 'package:barber_shop/application/use_cases/obtener_turnos_por_dia.dart';
-import 'package:barber_shop/application/use_cases/validar_disponibilidad_horaria.dart';
 import 'package:barber_shop/application/use_cases/cerrar_sesion_admin.dart';
 import 'package:barber_shop/application/use_cases/crear_bloqueo.dart';
 import 'package:barber_shop/application/use_cases/eliminar_bloqueo.dart';
@@ -87,10 +86,6 @@ void main() {
     expect(
       getIt<ObtenerCatalogoServiciosUseCase>(),
       isA<ObtenerCatalogoServiciosUseCase>(),
-    );
-    expect(
-      getIt<ValidarDisponibilidadHorariaUseCase>(),
-      isA<ValidarDisponibilidadHorariaUseCase>(),
     );
     expect(
       getIt<ObtenerHistorialClienteUseCase>(),

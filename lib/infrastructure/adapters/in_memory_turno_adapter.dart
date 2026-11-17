@@ -17,16 +17,6 @@ class InMemoryTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  Future<bool> existsAtTime(String fechaYMD, String hora) async {
-    return _turnos.any(
-      (t) =>
-          t.fechaYMD == fechaYMD &&
-          t.hora == hora &&
-          t.estado == EstadoTurno.reservado,
-    );
-  }
-
-  @override
   Future<List<Turno>> findByDate(String fechaYMD) async {
     final result = _turnos
         .where(

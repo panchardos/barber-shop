@@ -128,4 +128,4 @@ El TP5 conserva los cinco casos de uso del MVP anterior:
 4. `ActualizarPrecioServicioUseCase`
 5. `ObtenerCatalogoServiciosUseCase`
 
-Además, se mantiene `ValidarDisponibilidadHorariaUseCase` como apoyo al flujo de reserva.
+La validación de disponibilidad se realiza dentro de `ObtenerHorariosDisponiblesUseCase` al mostrar los horarios y de `AgendarTurnoUseCase` al confirmar la reserva.

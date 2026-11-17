@@ -46,7 +46,6 @@ import 'application/use_cases/obtener_configuracion_agenda.dart';
 import 'application/use_cases/obtener_historial_cliente.dart';
 import 'application/use_cases/obtener_horarios_disponibles.dart';
 import 'application/use_cases/obtener_turnos_por_dia.dart';
-import 'application/use_cases/validar_disponibilidad_horaria.dart';
 import 'application/use_cases/verificar_sesion_admin.dart';
 
 // BLoCs (Presentación)
@@ -187,15 +186,6 @@ void _registerUseCases() {
 
   getIt.registerLazySingleton<ObtenerCatalogoServiciosUseCase>(
     () => ObtenerCatalogoServiciosUseCase(getIt<ServicioRepository>()),
-  );
-
-  getIt.registerLazySingleton<ValidarDisponibilidadHorariaUseCase>(
-    () => ValidarDisponibilidadHorariaUseCase(
-      getIt<TurnoRepository>(),
-      getIt<ConfiguracionRepository>(),
-      getIt<DisponibilidadHorariaService>(),
-      getIt<BloqueoRepository>(),
-    ),
   );
 
   getIt.registerLazySingleton<ObtenerHorariosDisponiblesUseCase>(

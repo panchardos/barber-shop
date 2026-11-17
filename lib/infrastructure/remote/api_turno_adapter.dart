@@ -36,12 +36,6 @@ class ApiTurnoAdapter implements TurnoRepository {
   }
 
   @override
-  Future<bool> existsAtTime(String fechaYMD, String hora) async {
-    final turnos = await findByDate(fechaYMD);
-    return turnos.any((turno) => turno.hora == hora);
-  }
-
-  @override
   Future<List<Turno>> findByDate(String fechaYMD) async {
     try {
       if (_session.isAuthenticated) {
