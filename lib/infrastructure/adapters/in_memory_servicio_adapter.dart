@@ -62,12 +62,6 @@ class InMemoryServicioAdapter implements ServicioRepository {
       throw ServicioNotFoundException(id);
     }
 
-    final s = _servicios[index];
-    _servicios[index] = Servicio(
-      id: s.id,
-      nombre: s.nombre,
-      duracionMinutos: s.duracionMinutos,
-      precio: nuevoPrecio,
-    );
+    _servicios[index] = _servicios[index].copyWith(precio: nuevoPrecio);
   }
 }

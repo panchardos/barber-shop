@@ -70,13 +70,7 @@ class SqfliteServicioAdapter implements ServicioRepository {
       throw ServicioNotFoundException(id);
     }
 
-    final servicioActual = _cache[index];
-    final servicioActualizado = Servicio(
-      id: servicioActual.id,
-      nombre: servicioActual.nombre,
-      duracionMinutos: servicioActual.duracionMinutos,
-      precio: nuevoPrecio,
-    );
+    final servicioActualizado = _cache[index].copyWith(precio: nuevoPrecio);
 
     late int filasAfectadas;
     try {

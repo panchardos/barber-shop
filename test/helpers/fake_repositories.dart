@@ -159,13 +159,7 @@ class FakeServicioRepository implements ServicioRepository {
       throw ServicioNotFoundException(id);
     }
 
-    final actual = servicios[index];
-    servicios[index] = Servicio(
-      id: actual.id,
-      nombre: actual.nombre,
-      duracionMinutos: actual.duracionMinutos,
-      precio: nuevoPrecio,
-    );
+    servicios[index] = servicios[index].copyWith(precio: nuevoPrecio);
   }
 }
 
