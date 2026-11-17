@@ -60,17 +60,10 @@ class _NuevoTurnoViewState extends State<_NuevoTurnoView> {
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
 
     return BlocListener<ReservaBloc, ReservaState>(
-      listenWhen: (previous, current) =>
-          current is ReservaSuccess ||
-          (current is ReservaLoaded && current.errorMessage != null),
+      listenWhen: (previous, current) => current is ReservaSuccess,
       listener: (context, state) {
         if (state is ReservaSuccess) {
           Navigator.pop(context, true);
-        } else if (state is ReservaLoaded && state.errorMessage != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-          context.read<ReservaBloc>().add(const ReservaMensajeLimpiado());
         }
       },
       child: BlocBuilder<ReservaBloc, ReservaState>(
@@ -164,8 +157,39 @@ class _NuevoTurnoViewState extends State<_NuevoTurnoView> {
                     );
                   },
                   cargando: state.cargandoHorarios,
-                  error: state.errorMessage,
+                  error: null,
                 ),
+                if (state.errorMessage != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    key: const Key('nuevo-turno-error'),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.grisFondo,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.rojo),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.rojo,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            state.errorMessage!,
+                            style: const TextStyle(
+                              color: AppColors.rojo,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 const SectionTitle('Datos del cliente'),
                 TextFormField(
