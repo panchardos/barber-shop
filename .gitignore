@@ -53,3 +53,10 @@ app.*.map.json
 
 # Notas internas de sesiones / handoff de opencode
 /docs/sesiones/
+
+# Servidor de demo
+/server/.env
+/server/data/
+
+# Plantilla de configuración del servidor (sí se versiona)
+!/server/.env.example
