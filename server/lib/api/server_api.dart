@@ -154,6 +154,7 @@ class ServerApi {
     final duracion = _requiredInt(body, 'duracionBloqueMinutos');
     final pausaInicio = _optionalString(body, 'pausaInicio');
     final pausaFin = _optionalString(body, 'pausaFin');
+    final diasLaborales = _diasLaborales(body['diasLaborales']);
 
     ServerAvailability.validateConfig(
       apertura: apertura,
@@ -161,6 +162,7 @@ class ServerApi {
       duracionBloqueMinutos: duracion,
       pausaInicio: pausaInicio,
       pausaFin: pausaFin,
+      diasLaborales: diasLaborales,
     );
 
     await db.updateConfig(
@@ -169,6 +171,7 @@ class ServerApi {
       duracionBloqueMinutos: duracion,
       pausaInicio: pausaInicio,
       pausaFin: pausaFin,
+      diasLaborales: diasLaborales,
     );
 
     final config = await db.getConfig();
@@ -368,6 +371,7 @@ class ServerApi {
       'duracionBloqueMinutos': row['duracion_bloque_minutos'],
       'pausaInicio': row['pausa_inicio'],
       'pausaFin': row['pausa_fin'],
+      'diasLaborales': _parseDiasLaborales(row['dias_laborales'] as String?),
     };
   }
 
@@ -403,6 +407,44 @@ class ServerApi {
       throw ApiException(400, 'El campo $key es obligatorio.');
     }
     return value.trim();
+  }
+
+  List<int> _diasLaborales(Object? value) {
+    if (value == null) {
+      return const [1, 2, 3, 4, 5, 6, 7];
+    }
+    if (value is! List) {
+      throw const ApiException(400, 'diasLaborales debe ser una lista.');
+    }
+    final dias = value
+        .whereType<num>()
+        .map((dia) => dia.toInt())
+        .where((dia) => dia >= 1 && dia <= 7)
+        .toSet()
+        .toList()
+      ..sort();
+    if (dias.isEmpty) {
+      throw const ApiException(
+        400,
+        'Seleccioná al menos un día de atención.',
+      );
+    }
+    return dias;
+  }
+
+  List<int> _parseDiasLaborales(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return const [1, 2, 3, 4, 5, 6, 7];
+    }
+    final dias = value
+        .split(',')
+        .map((dia) => int.tryParse(dia.trim()))
+        .whereType<int>()
+        .where((dia) => dia >= 1 && dia <= 7)
+        .toSet()
+        .toList()
+      ..sort();
+    return dias.isEmpty ? const [1, 2, 3, 4, 5, 6, 7] : dias;
   }
 
   String? _optionalString(Map<String, dynamic> body, String key) {

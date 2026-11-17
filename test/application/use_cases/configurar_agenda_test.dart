@@ -1,4 +1,5 @@
 import 'package:barber_shop/application/use_cases/configurar_agenda.dart';
+import 'package:barber_shop/domain/entities/configuracion_agenda.dart';
 import 'package:barber_shop/domain/exceptions/domain_exceptions.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -28,6 +29,35 @@ void main() {
       expect(configuracion.duracionBloqueMinutos, 45);
       expect(configuracion.pausaInicio, isNull);
       expect(configuracion.pausaFin, isNull);
+      expect(
+        configuracion.diasLaborales,
+        ConfiguracionAgenda.diasLaboralesPorDefecto,
+      );
+    });
+
+    test('guarda y recupera los días de atención', () async {
+      await useCase.guardarHorario(
+        apertura: '09:00',
+        cierre: '20:00',
+        duracionBloque: 30,
+        diasLaborales: {2, 4, 6},
+      );
+
+      final configuracion = await useCase.obtenerHorario();
+
+      expect(configuracion.diasLaborales, {2, 4, 6});
+    });
+
+    test('rechaza una lista de días vacía', () async {
+      await expectLater(
+        useCase.guardarHorario(
+          apertura: '09:00',
+          cierre: '20:00',
+          duracionBloque: 30,
+          diasLaborales: {},
+        ),
+        throwsA(isA<ConfiguracionInvalidaException>()),
+      );
     });
 
     test('guarda y recupera una pausa válida', () async {

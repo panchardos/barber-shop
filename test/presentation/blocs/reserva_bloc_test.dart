@@ -1,6 +1,8 @@
 import 'package:barber_shop/application/use_cases/agendar_turno.dart';
 import 'package:barber_shop/application/use_cases/obtener_catalogo_servicios.dart';
+import 'package:barber_shop/application/use_cases/obtener_configuracion_agenda.dart';
 import 'package:barber_shop/application/use_cases/obtener_horarios_disponibles.dart';
+import 'package:barber_shop/domain/entities/configuracion_agenda.dart';
 import 'package:barber_shop/domain/entities/servicio.dart';
 import 'package:barber_shop/domain/services/disponibilidad_horaria_service.dart';
 import 'package:barber_shop/presentation/blocs/reserva/reserva_bloc.dart';
@@ -69,6 +71,46 @@ void main() {
             .having((state) => state.servicios.length, 'servicios', 2)
             .having((state) => state.servicioSeleccionado?.id, 'servicio', '1')
             .having((state) => state.horarios, 'horarios', contains('10:00')),
+      ],
+    );
+
+    blocTest<ReservaBloc, ReservaState>(
+      'ajusta la fecha al siguiente día laboral',
+      build: () {
+        configuracionRepository.configuracion = const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '12:00',
+          duracionBloqueMinutos: 30,
+          diasLaborales: {1, 3, 5},
+        );
+        return ReservaBloc(
+          ObtenerCatalogoServiciosUseCase(servicioRepository),
+          ObtenerHorariosDisponiblesUseCase(
+            turnoRepository,
+            configuracionRepository,
+            disponibilidad,
+          ),
+          AgendarTurnoUseCase(
+            turnoRepository,
+            configuracionRepository,
+            disponibilidad,
+          ),
+          ObtenerConfiguracionAgendaUseCase(configuracionRepository),
+        );
+      },
+      act: (bloc) => bloc.add(
+        ReservaIniciada(
+          DateTime(2030, 1, 15),
+          ajustarDiaLaboral: true,
+        ),
+      ),
+      expect: () => [
+        isA<ReservaLoading>(),
+        isA<ReservaLoaded>().having(
+          (state) => state.fecha.weekday,
+          'día laboral',
+          3,
+        ),
       ],
     );
 

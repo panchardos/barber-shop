@@ -53,6 +53,7 @@ class ConfiguracionAgendaBloc
         duracionBloque: event.duracionBloque,
         pausaInicio: event.pausaInicio,
         pausaFin: event.pausaFin,
+        diasLaborales: event.diasLaborales,
       );
       final configuracion = await _configurarAgenda.obtenerHorario();
 

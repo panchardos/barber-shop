@@ -237,6 +237,7 @@ void main() {
       'duracionBloqueMinutos': 45,
       'pausaInicio': '13:00',
       'pausaFin': '14:00',
+      'diasLaborales': [1, 2, 3, 4, 5],
     }, token: token);
     expect(updated.statusCode, 200);
 
@@ -246,6 +247,7 @@ void main() {
     expect(json['duracionBloqueMinutos'], 45);
     expect(json['pausaInicio'], '13:00');
     expect(json['pausaFin'], '14:00');
+    expect(json['diasLaborales'], [1, 2, 3, 4, 5]);
   });
 
   test('bloqueos: crear, listar, bloquear reserva y eliminar', () async {

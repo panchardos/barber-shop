@@ -13,6 +13,7 @@ import 'package:barber_shop/application/use_cases/crear_bloqueo.dart';
 import 'package:barber_shop/application/use_cases/eliminar_bloqueo.dart';
 import 'package:barber_shop/application/use_cases/iniciar_sesion_admin.dart';
 import 'package:barber_shop/application/use_cases/obtener_bloqueos_por_dia.dart';
+import 'package:barber_shop/application/use_cases/obtener_configuracion_agenda.dart';
 import 'package:barber_shop/application/use_cases/verificar_sesion_admin.dart';
 import 'package:barber_shop/domain/ports/auth_repository.dart';
 import 'package:barber_shop/domain/ports/bloqueo_repository.dart';
@@ -58,6 +59,10 @@ void main() {
     expect(
       getIt<ObtenerBloqueosPorDiaUseCase>(),
       isA<ObtenerBloqueosPorDiaUseCase>(),
+    );
+    expect(
+      getIt<ObtenerConfiguracionAgendaUseCase>(),
+      isA<ObtenerConfiguracionAgendaUseCase>(),
     );
     expect(
       getIt<IniciarSesionAdminUseCase>(),

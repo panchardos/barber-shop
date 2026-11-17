@@ -137,6 +137,23 @@ void main() {
       );
     });
 
+    test('no ofrece horarios en un día no laboral', () {
+      final horarios = service.calcularHorariosDisponibles(
+        fechaYMD: '2030-01-12',
+        configuracion: const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '12:00',
+          duracionBloqueMinutos: 30,
+          diasLaborales: {1, 2, 3, 4, 5},
+        ),
+        servicio: servicio30,
+        turnosDelDia: const [],
+        ahora: ahora,
+      );
+
+      expect(horarios, isEmpty);
+    });
+
     test('retorna vacío para fechas pasadas', () {
       final horarios = service.calcularHorariosDisponibles(
         fechaYMD: '2029-01-15',

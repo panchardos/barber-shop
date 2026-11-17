@@ -51,6 +51,7 @@ void main() {
           duracionBloque: 45,
           pausaInicio: '13:00',
           pausaFin: '14:00',
+          diasLaborales: {1, 3, 5},
         ),
       ),
       expect: () => [
@@ -80,6 +81,11 @@ void main() {
               (state) => state.configuracion.pausaFin,
               'pausaFin',
               '14:00',
+            )
+            .having(
+              (state) => state.configuracion.diasLaborales,
+              'diasLaborales',
+              {1, 3, 5},
             )
             .having((state) => state.successMessage, 'success', isNotNull),
       ],

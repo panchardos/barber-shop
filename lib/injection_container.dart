@@ -42,6 +42,7 @@ import 'application/use_cases/eliminar_bloqueo.dart';
 import 'application/use_cases/iniciar_sesion_admin.dart';
 import 'application/use_cases/obtener_bloqueos_por_dia.dart';
 import 'application/use_cases/obtener_catalogo_servicios.dart';
+import 'application/use_cases/obtener_configuracion_agenda.dart';
 import 'application/use_cases/obtener_historial_cliente.dart';
 import 'application/use_cases/obtener_horarios_disponibles.dart';
 import 'application/use_cases/obtener_turnos_por_dia.dart';
@@ -210,6 +211,10 @@ void _registerUseCases() {
     () => ObtenerHistorialClienteUseCase(getIt<TurnoRepository>()),
   );
 
+  getIt.registerLazySingleton<ObtenerConfiguracionAgendaUseCase>(
+    () => ObtenerConfiguracionAgendaUseCase(getIt<ConfiguracionRepository>()),
+  );
+
   getIt.registerLazySingleton<ConfigurarAgendaUseCase>(
     () => ConfigurarAgendaUseCase(getIt<ConfiguracionRepository>()),
   );
@@ -247,6 +252,7 @@ void _registerBlocs() {
       getIt<ObtenerCatalogoServiciosUseCase>(),
       getIt<ObtenerHorariosDisponiblesUseCase>(),
       getIt<AgendarTurnoUseCase>(),
+      getIt<ObtenerConfiguracionAgendaUseCase>(),
     ),
   );
 

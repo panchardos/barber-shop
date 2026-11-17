@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/use_cases/agendar_turno.dart';
 import '../../../application/use_cases/obtener_catalogo_servicios.dart';
+import '../../../application/use_cases/obtener_configuracion_agenda.dart';
 import '../../../application/use_cases/obtener_horarios_disponibles.dart';
 import '../../utils/date_formatters.dart';
 import '../../utils/demo_config.dart';
@@ -12,9 +13,14 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
   final ObtenerCatalogoServiciosUseCase _obtenerCatalogo;
   final ObtenerHorariosDisponiblesUseCase _obtenerHorarios;
   final AgendarTurnoUseCase _agendarTurno;
+  final ObtenerConfiguracionAgendaUseCase? _obtenerConfiguracion;
 
-  ReservaBloc(this._obtenerCatalogo, this._obtenerHorarios, this._agendarTurno)
-    : super(const ReservaInitial()) {
+  ReservaBloc(
+    this._obtenerCatalogo,
+    this._obtenerHorarios,
+    this._agendarTurno, [
+    this._obtenerConfiguracion,
+  ]) : super(const ReservaInitial()) {
     on<ReservaIniciada>(_onIniciada);
     on<ReservaServicioSeleccionado>(_onServicioSeleccionado);
     on<ReservaFechaSeleccionada>(_onFechaSeleccionada);
@@ -27,7 +33,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
     ReservaIniciada event,
     Emitter<ReservaState> emit,
   ) async {
-    final fecha = soloFecha(event.fecha);
+    var fecha = soloFecha(event.fecha);
     emit(const ReservaLoading());
     await DemoConfig.pausa();
 
@@ -37,6 +43,15 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
       if (servicios.isEmpty) {
         emit(const ReservaError('No hay servicios disponibles.'));
         return;
+      }
+
+      final configuracion = await _obtenerConfiguracion?.execute();
+      final diasLaborales =
+          configuracion?.diasLaborales ??
+          const <int>{1, 2, 3, 4, 5, 6, 7};
+
+      if (event.ajustarDiaLaboral && !diasLaborales.contains(fecha.weekday)) {
+        fecha = _siguienteDiaLaboral(fecha, diasLaborales);
       }
 
       final servicio = servicios.first;
@@ -52,6 +67,7 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
           fecha: fecha,
           horarios: horarios,
           horaSeleccionada: null,
+          diasLaborales: diasLaborales,
         ),
       );
     } catch (e) {
@@ -176,5 +192,15 @@ class ReservaBloc extends Bloc<ReservaEvent, ReservaState> {
     final actual = state;
     if (actual is! ReservaLoaded || actual.errorMessage == null) return;
     emit(actual.copyWith(errorMessage: null));
+  }
+
+  DateTime _siguienteDiaLaboral(DateTime desde, Set<int> diasLaborales) {
+    for (var i = 0; i < 7; i++) {
+      final candidato = desde.add(Duration(days: i));
+      if (diasLaborales.contains(candidato.weekday)) {
+        return candidato;
+      }
+    }
+    return desde;
   }
 }

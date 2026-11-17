@@ -23,7 +23,7 @@ class ServerDatabase {
     final database = await dbFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onCreate: (db, version) async {
           await _createSchema(db);
           await _seed(db);
@@ -35,6 +35,11 @@ class ServerDatabase {
           }
           if (oldVersion < 3) {
             await _createBloqueosTable(db);
+          }
+          if (oldVersion < 4) {
+            await db.execute(
+              "ALTER TABLE config ADD COLUMN dias_laborales TEXT NOT NULL DEFAULT '1,2,3,4,5,6,7'",
+            );
           }
         },
       ),
@@ -77,6 +82,7 @@ class ServerDatabase {
         duracion_bloque_minutos INTEGER NOT NULL,
         pausa_inicio TEXT,
         pausa_fin TEXT,
+        dias_laborales TEXT NOT NULL DEFAULT '1,2,3,4,5,6,7',
         updated_at TEXT NOT NULL
       )
     ''');
@@ -149,6 +155,7 @@ class ServerDatabase {
       'duracion_bloque_minutos': 30,
       'pausa_inicio': null,
       'pausa_fin': null,
+      'dias_laborales': '1,2,3,4,5,6,7',
       'updated_at': now,
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
@@ -211,13 +218,16 @@ class ServerDatabase {
     required int duracionBloqueMinutos,
     String? pausaInicio,
     String? pausaFin,
+    required List<int> diasLaborales,
   }) async {
+    final dias = (diasLaborales.toList()..sort()).join(',');
     final count = await _db.update('config', {
       'apertura': apertura,
       'cierre': cierre,
       'duracion_bloque_minutos': duracionBloqueMinutos,
       'pausa_inicio': pausaInicio,
       'pausa_fin': pausaFin,
+      'dias_laborales': dias,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     }, where: 'id = 1');
 
@@ -229,6 +239,7 @@ class ServerDatabase {
         'duracion_bloque_minutos': duracionBloqueMinutos,
         'pausa_inicio': pausaInicio,
         'pausa_fin': pausaFin,
+        'dias_laborales': dias,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
     }

@@ -20,6 +20,7 @@ class ApiConfiguracionAdapter implements ConfiguracionRepository {
           'duracionBloqueMinutos': configuracion.duracionBloqueMinutos,
           'pausaInicio': configuracion.pausaInicio,
           'pausaFin': configuracion.pausaFin,
+          'diasLaborales': (configuracion.diasLaborales.toList()..sort()),
         },
       );
     } on ApiClientException catch (error) {
@@ -43,10 +44,23 @@ class ApiConfiguracionAdapter implements ConfiguracionRepository {
         duracionBloqueMinutos: response['duracionBloqueMinutos'] as int,
         pausaInicio: response['pausaInicio'] as String?,
         pausaFin: response['pausaFin'] as String?,
+        diasLaborales: _leerDias(response['diasLaborales']),
       );
     } on ApiClientException catch (error) {
       throw ConfiguracionFailureException(error.message);
     }
+  }
+
+  Set<int> _leerDias(Object? valor) {
+    if (valor is! List) {
+      return ConfiguracionAgenda.diasLaboralesPorDefecto;
+    }
+    final dias = valor
+        .whereType<num>()
+        .map((dia) => dia.toInt())
+        .where((dia) => dia >= 1 && dia <= 7)
+        .toSet();
+    return dias.isEmpty ? ConfiguracionAgenda.diasLaboralesPorDefecto : dias;
   }
 
   @override

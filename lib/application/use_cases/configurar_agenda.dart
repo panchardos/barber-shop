@@ -13,9 +13,16 @@ class ConfigurarAgendaUseCase {
     required int duracionBloque,
     String? pausaInicio,
     String? pausaFin,
+    Set<int>? diasLaborales,
   }) async {
     final inicio = _normalizarHora(pausaInicio);
     final fin = _normalizarHora(pausaFin);
+    final dias = diasLaborales ?? ConfiguracionAgenda.diasLaboralesPorDefecto;
+    if (dias.isEmpty || dias.any((dia) => dia < 1 || dia > 7)) {
+      throw ConfiguracionInvalidaException(
+        'Seleccioná al menos un día de atención válido.',
+      );
+    }
 
     if ((inicio == null) != (fin == null)) {
       throw ConfiguracionInvalidaException(
@@ -57,6 +64,7 @@ class ConfigurarAgendaUseCase {
         duracionBloqueMinutos: duracionBloque,
         pausaInicio: inicio,
         pausaFin: fin,
+        diasLaborales: dias,
       ),
     );
   }

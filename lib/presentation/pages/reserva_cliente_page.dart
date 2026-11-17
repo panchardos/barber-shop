@@ -18,8 +18,13 @@ class ReservaClientePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          getIt<ReservaBloc>()..add(ReservaIniciada(soloFecha(DateTime.now()))),
+      create: (_) => getIt<ReservaBloc>()
+        ..add(
+          ReservaIniciada(
+            soloFecha(DateTime.now()),
+            ajustarDiaLaboral: true,
+          ),
+        ),
       child: const _ReservaClienteView(),
     );
   }
@@ -103,7 +108,12 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
     if (!mounted) return;
     _nombreCtrl.clear();
     _telefonoCtrl.clear();
-    context.read<ReservaBloc>().add(ReservaIniciada(soloFecha(DateTime.now())));
+    context.read<ReservaBloc>().add(
+      ReservaIniciada(
+        soloFecha(DateTime.now()),
+        ajustarDiaLaboral: true,
+      ),
+    );
   }
 
   void _confirmarReserva(BuildContext context) {
@@ -143,7 +153,10 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
                 ReservaError(:final message) => _ErrorReserva(
                   message: message,
                   onRetry: () => context.read<ReservaBloc>().add(
-                    ReservaIniciada(soloFecha(DateTime.now())),
+                    ReservaIniciada(
+                      soloFecha(DateTime.now()),
+                      ajustarDiaLaboral: true,
+                    ),
                   ),
                 ),
                 ReservaSuccess() => const Center(
@@ -205,6 +218,8 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
                     initialDate: state.fecha,
                     firstDate: hoy,
                     lastDate: hoy.add(const Duration(days: 90)),
+                    selectableDayPredicate: (fecha) =>
+                        state.diasLaborales.contains(fecha.weekday),
                     onDateChanged: (fecha) {
                       context.read<ReservaBloc>().add(
                         ReservaFechaSeleccionada(fecha),
@@ -327,7 +342,10 @@ class _ReservaClienteViewState extends State<_ReservaClienteView> {
             await Navigator.pushNamed(context, AppRoutes.admin);
             if (!context.mounted || !mounted) return;
             context.read<ReservaBloc>().add(
-              ReservaIniciada(soloFecha(DateTime.now())),
+              ReservaIniciada(
+                soloFecha(DateTime.now()),
+                ajustarDiaLaboral: true,
+              ),
             );
           },
         ),

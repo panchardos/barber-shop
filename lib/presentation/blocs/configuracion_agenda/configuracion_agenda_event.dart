@@ -12,6 +12,7 @@ final class ConfiguracionAgendaGuardada extends ConfiguracionAgendaEvent {
   final int duracionBloque;
   final String? pausaInicio;
   final String? pausaFin;
+  final Set<int> diasLaborales;
 
   const ConfiguracionAgendaGuardada({
     required this.apertura,
@@ -19,6 +20,7 @@ final class ConfiguracionAgendaGuardada extends ConfiguracionAgendaEvent {
     required this.duracionBloque,
     this.pausaInicio,
     this.pausaFin,
+    this.diasLaborales = const {1, 2, 3, 4, 5, 6, 7},
   });
 }
 

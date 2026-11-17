@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/configuracion_agenda.dart';
 import '../../injection_container.dart';
 import '../blocs/configuracion_agenda/configuracion_agenda_bloc.dart';
 import '../blocs/configuracion_agenda/configuracion_agenda_event.dart';
@@ -32,12 +33,15 @@ class _ConfiguracionAgendaView extends StatefulWidget {
 }
 
 class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
+  static const _dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
   final _formKey = GlobalKey<FormState>();
   final _aperturaCtrl = TextEditingController();
   final _cierreCtrl = TextEditingController();
   final _intervaloCtrl = TextEditingController();
   final _pausaInicioCtrl = TextEditingController();
   final _pausaFinCtrl = TextEditingController();
+  Set<int> _diasLaborales = {...ConfiguracionAgenda.diasLaboralesPorDefecto};
 
   @override
   void dispose() {
@@ -118,6 +122,16 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
       return;
     }
 
+    if (_diasLaborales.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Seleccioná al menos un día de atención'),
+          backgroundColor: AppColors.rojo,
+        ),
+      );
+      return;
+    }
+
     if (pausaInicio.isNotEmpty) {
       final inicioMin = _horaAMinutos(pausaInicio);
       final finMin = _horaAMinutos(pausaFin);
@@ -157,6 +171,7 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
         duracionBloque: int.parse(_intervaloCtrl.text.trim()),
         pausaInicio: pausaInicio.isEmpty ? null : pausaInicio,
         pausaFin: pausaFin.isEmpty ? null : pausaFin,
+        diasLaborales: _diasLaborales,
       ),
     );
   }
@@ -183,6 +198,7 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
     if (_pausaFinCtrl.text != pausaFin) {
       _pausaFinCtrl.text = pausaFin;
     }
+    _diasLaborales = {...state.configuracion.diasLaborales};
   }
 
   @override
@@ -276,6 +292,29 @@ class _ConfiguracionAgendaViewState extends State<_ConfiguracionAgendaView> {
                         prefixIcon: Icon(Icons.timer),
                       ),
                       validator: _validarDuracion,
+                    ),
+                    const SizedBox(height: 24),
+                    const SectionTitle('Días de atención'),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: List.generate(_dias.length, (index) {
+                        final dia = index + 1;
+                        return FilterChip(
+                          label: Text(_dias[index]),
+                          selected: _diasLaborales.contains(dia),
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _diasLaborales.add(dia);
+                              } else {
+                                _diasLaborales.remove(dia);
+                              }
+                            });
+                          },
+                        );
+                      }),
                     ),
                     const SizedBox(height: 24),
                     const SectionTitle('Pausa / almuerzo (opcional)'),

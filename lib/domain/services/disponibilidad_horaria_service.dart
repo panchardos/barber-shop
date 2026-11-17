@@ -39,6 +39,16 @@ class DisponibilidadHorariaService {
       );
     }
 
+    final fecha = DateTime.tryParse(fechaYMD);
+    if (fecha == null) {
+      throw ConfiguracionInvalidaException(
+        'La fecha debe tener formato YYYY-MM-DD.',
+      );
+    }
+    if (!configuracion.esDiaLaboral(fecha.weekday)) {
+      return const [];
+    }
+
     final pausa = _resolverPausa(configuracion, apertura, cierre);
 
     final bloqueosDelDia = bloqueos

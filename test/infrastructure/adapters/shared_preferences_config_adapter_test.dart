@@ -23,6 +23,25 @@ void main() {
       expect(configuracion.apertura, '09:00');
       expect(configuracion.cierre, '20:00');
       expect(configuracion.duracionBloqueMinutos, 30);
+      expect(
+        configuracion.diasLaborales,
+        ConfiguracionAgenda.diasLaboralesPorDefecto,
+      );
+    });
+
+    test('guarda y recupera los días de atención', () async {
+      await adapter.saveHorarioAtencion(
+        const ConfiguracionAgenda(
+          apertura: '09:00',
+          cierre: '20:00',
+          duracionBloqueMinutos: 30,
+          diasLaborales: {2, 4, 6},
+        ),
+      );
+
+      final configuracion = await adapter.getHorarioAtencion();
+
+      expect(configuracion.diasLaborales, {2, 4, 6});
     });
 
     test('guarda y recupera la configuración', () async {

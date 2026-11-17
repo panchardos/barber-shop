@@ -35,6 +35,15 @@ class ServerAvailability {
 
     final pausaInicioRaw = config['pausa_inicio'] as String?;
     final pausaFinRaw = config['pausa_fin'] as String?;
+    final fecha = DateTime.tryParse(fechaYMD);
+    if (fecha == null) {
+      throw const FormatException('La fecha debe tener formato YYYY-MM-DD.');
+    }
+    final diasLaborales = _parseDias(config['dias_laborales'] as String?);
+    if (!diasLaborales.contains(fecha.weekday)) {
+      return const [];
+    }
+
     final pausa = _resolverPausa(
       apertura: apertura,
       cierre: cierre,
@@ -130,6 +139,7 @@ class ServerAvailability {
     required int duracionBloqueMinutos,
     String? pausaInicio,
     String? pausaFin,
+    List<int>? diasLaborales,
   }) {
     final inicio = _parseHora(apertura);
     final fin = _parseHora(cierre);
@@ -150,6 +160,28 @@ class ServerAvailability {
       pausaInicioRaw: pausaInicio,
       pausaFinRaw: pausaFin,
     );
+
+    final dias = diasLaborales ?? const [1, 2, 3, 4, 5, 6, 7];
+    if (dias.isEmpty || dias.any((dia) => dia < 1 || dia > 7)) {
+      throw const FormatException(
+        'Seleccioná al menos un día de atención válido.',
+      );
+    }
+  }
+
+  static List<int> _parseDias(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return const [1, 2, 3, 4, 5, 6, 7];
+    }
+    final dias = value
+        .split(',')
+        .map((dia) => int.tryParse(dia.trim()))
+        .whereType<int>()
+        .where((dia) => dia >= 1 && dia <= 7)
+        .toSet()
+        .toList()
+      ..sort();
+    return dias.isEmpty ? const [1, 2, 3, 4, 5, 6, 7] : dias;
   }
 
   static _Rango? _resolverPausa({

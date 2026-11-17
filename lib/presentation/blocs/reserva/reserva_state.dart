@@ -23,6 +23,7 @@ final class ReservaLoaded extends ReservaState {
   final bool cargandoHorarios;
   final bool enviando;
   final String? errorMessage;
+  final Set<int> diasLaborales;
 
   const ReservaLoaded({
     required this.servicios,
@@ -33,6 +34,7 @@ final class ReservaLoaded extends ReservaState {
     this.cargandoHorarios = false,
     this.enviando = false,
     this.errorMessage,
+    this.diasLaborales = const {1, 2, 3, 4, 5, 6, 7},
   });
 
   ReservaLoaded copyWith({
@@ -44,6 +46,7 @@ final class ReservaLoaded extends ReservaState {
     bool? cargandoHorarios,
     bool? enviando,
     Object? errorMessage = _sinCambio,
+    Set<int>? diasLaborales,
   }) {
     return ReservaLoaded(
       servicios: servicios ?? this.servicios,
@@ -60,6 +63,7 @@ final class ReservaLoaded extends ReservaState {
       errorMessage: identical(errorMessage, _sinCambio)
           ? this.errorMessage
           : errorMessage as String?,
+      diasLaborales: diasLaborales ?? this.diasLaborales,
     );
   }
 }

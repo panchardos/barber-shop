@@ -6,8 +6,9 @@ sealed class ReservaEvent {
 
 final class ReservaIniciada extends ReservaEvent {
   final DateTime fecha;
+  final bool ajustarDiaLaboral;
 
-  const ReservaIniciada(this.fecha);
+  const ReservaIniciada(this.fecha, {this.ajustarDiaLaboral = false});
 }
 
 final class ReservaServicioSeleccionado extends ReservaEvent {

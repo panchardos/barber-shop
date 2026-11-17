@@ -13,6 +13,7 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
   static const String _keyDuracion = "cfg_duracion_bloque";
   static const String _keyPausaInicio = "cfg_pausa_inicio";
   static const String _keyPausaFin = "cfg_pausa_fin";
+  static const String _keyDiasLaborales = "cfg_dias_laborales";
   static const String _keyModoOscuro = "cfg_modo_oscuro";
 
   @override
@@ -31,6 +32,11 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
       } else {
         await _prefs.setString(_keyPausaFin, configuracion.pausaFin!);
       }
+      final dias = configuracion.diasLaborales.toList()..sort();
+      await _prefs.setStringList(
+        _keyDiasLaborales,
+        dias.map((dia) => dia.toString()).toList(),
+      );
     } catch (e) {
       throw ConfiguracionFailureException(
         "No se pudo guardar la configuración de horario: $e",
@@ -43,6 +49,14 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
     try {
       final pausaInicio = _prefs.getString(_keyPausaInicio);
       final pausaFin = _prefs.getString(_keyPausaFin);
+      final diasGuardados = _prefs.getStringList(_keyDiasLaborales);
+      final dias = diasGuardados == null || diasGuardados.isEmpty
+          ? ConfiguracionAgenda.diasLaboralesPorDefecto
+          : diasGuardados
+                .map(int.tryParse)
+                .whereType<int>()
+                .where((dia) => dia >= 1 && dia <= 7)
+                .toSet();
       return ConfiguracionAgenda(
         apertura: _prefs.getString(_keyApertura) ?? "09:00",
         cierre: _prefs.getString(_keyCierre) ?? "20:00",
@@ -51,6 +65,9 @@ class SharedPreferencesConfigAdapter implements ConfiguracionRepository {
             ? null
             : pausaInicio,
         pausaFin: (pausaFin == null || pausaFin.isEmpty) ? null : pausaFin,
+        diasLaborales: dias.isEmpty
+            ? ConfiguracionAgenda.diasLaboralesPorDefecto
+            : dias,
       );
     } catch (e) {
       throw ConfiguracionFailureException(

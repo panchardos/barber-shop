@@ -129,6 +129,23 @@ void main() {
       expect(slots, isEmpty);
     });
 
+    test('no ofrece horarios en un día no laboral', () {
+      final slots = ServerAvailability.availableSlots(
+        fechaYMD: '2030-01-12',
+        config: const {
+          'apertura': '09:00',
+          'cierre': '12:00',
+          'duracion_bloque_minutos': 30,
+          'dias_laborales': '1,2,3,4,5',
+        },
+        service: service30,
+        occupied: const [],
+        now: ahora,
+      );
+
+      expect(slots, isEmpty);
+    });
+
     test('valida configuración', () {
       expect(
         () => ServerAvailability.validateConfig(
